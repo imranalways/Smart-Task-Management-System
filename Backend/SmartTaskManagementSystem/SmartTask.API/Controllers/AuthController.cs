@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using SmartTask.Application.Common.Models;
 using SmartTask.Application.Contracts.Authentication;
 
 namespace SmartTask.API.Controllers
@@ -24,7 +25,16 @@ namespace SmartTask.API.Controllers
                 await _authService.RegisterAsync(
                     request);
 
-            return Ok(result);
+            return Ok(
+                new ApiResponse<object>
+                {
+                    Success = true,
+
+                    Message =
+                        "Registration successful.",
+
+                    Data = result
+                });
         }
         [HttpPost("login")]
         public async Task<IActionResult> Login(
@@ -34,7 +44,16 @@ namespace SmartTask.API.Controllers
                 await _authService.LoginAsync(
                     request);
 
-            return Ok(result);
+            return Ok(
+                new ApiResponse<object>
+                {
+                    Success = true,
+
+                    Message =
+                        "Login successful.",
+
+                    Data = result
+                });
         }
     }
 }

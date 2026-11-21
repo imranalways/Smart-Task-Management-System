@@ -49,7 +49,16 @@ namespace SmartTask.API.Controllers
                 await _projectService
                     .GetPagedAsync(request);
 
-            return Ok(result);
+            return Ok(
+                new ApiResponse<object>
+                {
+                    Success = true,
+
+                    Message =
+                        "Projects retrieved successfully.",
+
+                    Data = result
+                });
         }
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(
@@ -59,7 +68,16 @@ namespace SmartTask.API.Controllers
                 await _projectService
                     .GetByIdAsync(id);
 
-            return Ok(result);
+            return Ok(
+                new ApiResponse<object>
+                {
+                    Success = true,
+
+                    Message =
+                        "Project retrieved successfully.",
+
+                    Data = result
+                });
         }
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> Update(
@@ -72,7 +90,16 @@ namespace SmartTask.API.Controllers
                 await _projectService
                     .UpdateAsync(request);
 
-            return Ok(result);
+            return Ok(
+                new ApiResponse<object>
+                {
+                    Success = true,
+
+                    Message =
+                        "Project updated successfully.",
+
+                    Data = result
+                });
         }
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(

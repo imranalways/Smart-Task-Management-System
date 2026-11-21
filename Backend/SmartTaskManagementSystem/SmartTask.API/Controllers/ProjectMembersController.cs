@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using SmartTask.Application.Common.Models;
 using SmartTask.Application.Features.ProjectMembers.DTOs;
 using SmartTask.Application.Features.ProjectMembers.Services;
 using SmartTask.Domain.Constants;
@@ -36,7 +37,16 @@ public class ProjectMembersController
                 projectId,
                 request.UserId);
 
-        return Ok();
+        return Ok(
+            new ApiResponse<object>
+            {
+                Success = true,
+
+                Message =
+                    "Member added successfully.",
+
+                Data = null
+            });
     }
 
     [HttpGet]
@@ -48,7 +58,16 @@ public class ProjectMembersController
                 .GetMembersAsync(
                     projectId);
 
-        return Ok(result);
+        return Ok(
+            new ApiResponse<object>
+            {
+                Success = true,
+
+                Message =
+                    "Members retrieved successfully.",
+
+                Data = result
+            });
     }
 
     [HttpDelete("{userId}")]

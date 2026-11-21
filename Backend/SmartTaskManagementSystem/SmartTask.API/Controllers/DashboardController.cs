@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using SmartTask.Application.Common.Models;
 using SmartTask.Application.Features.Dashboard.Services;
 
 namespace SmartTask.API.Controllers;
@@ -29,6 +30,15 @@ public class DashboardController
             await _dashboardService
                 .GetSummaryAsync();
 
-        return Ok(result);
+        return Ok(
+            new ApiResponse<object>
+            {
+                Success = true,
+
+                Message =
+                    "Dashboard summary retrieved successfully.",
+
+                Data = result
+            });
     }
 }

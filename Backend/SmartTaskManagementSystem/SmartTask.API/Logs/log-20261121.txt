@@ -59,3 +59,67 @@ END
 2026-11-21 21:31:27.598 +06:00 [INF] HTTP GET / responded 404 in 62.5068 ms
 2026-11-21 21:31:27.633 +06:00 [INF] Request finished HTTP/2 GET https://localhost:44341/ - 404 null null 267.5985ms
 2026-11-21 21:31:27.638 +06:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:44341/, Response status code: 404
+2026-11-21 21:44:50.480 +06:00 [INF] Executed DbCommand (97ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [r].[Id], [r].[CreatedAt], [r].[Name], [r].[UpdatedAt]
+FROM [Roles] AS [r]
+WHERE [r].[Name] = N'Admin'
+2026-11-21 21:44:50.845 +06:00 [INF] Executed DbCommand (109ms) [Parameters=[@adminSettings_Email='?' (Size = 200)], CommandType='"Text"', CommandTimeout='30']
+SELECT CASE
+    WHEN EXISTS (
+        SELECT 1
+        FROM [Users] AS [u]
+        WHERE [u].[Email] = @adminSettings_Email) THEN CAST(1 AS bit)
+    ELSE CAST(0 AS bit)
+END
+2026-11-21 21:44:51.537 +06:00 [INF] User profile is available. Using 'C:\Users\imran.hossain\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-11-21 21:44:51.911 +06:00 [INF] Request starting HTTP/2 GET https://localhost:44341/ - null null
+2026-11-21 21:44:54.373 +06:00 [INF] HTTP GET / responded 404 in 2186.5178 ms
+2026-11-21 21:44:54.445 +06:00 [INF] Request finished HTTP/2 GET https://localhost:44341/ - 404 null null 2555.91ms
+2026-11-21 21:44:54.452 +06:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:44341/, Response status code: 404
+2026-11-21 21:45:01.128 +06:00 [INF] Request starting HTTP/2 POST https://localhost:44341/api/ai/improve-description - application/json 57
+2026-11-21 21:45:01.434 +06:00 [INF] Failed to validate the token.
+Microsoft.IdentityModel.Tokens.SecurityTokenExpiredException: IDX10223: Lifetime validation failed. The token is expired. ValidTo (UTC): '11/21/2026 1:38:37 PM', Current time (UTC): '11/21/2026 3:45:01 PM'.
+   at Microsoft.IdentityModel.Tokens.ValidatorUtilities.ValidateLifetime(Nullable`1 notBefore, Nullable`1 expires, SecurityToken securityToken, TokenValidationParameters validationParameters)
+   at Microsoft.IdentityModel.Tokens.Validators.ValidateLifetime(Nullable`1 notBefore, Nullable`1 expires, SecurityToken securityToken, TokenValidationParameters validationParameters)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ValidateTokenPayloadAsync(JsonWebToken jsonWebToken, TokenValidationParameters validationParameters, BaseConfiguration configuration)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ValidateJWSAsync(JsonWebToken jsonWebToken, TokenValidationParameters validationParameters, BaseConfiguration configuration)
+2026-11-21 21:45:01.474 +06:00 [INF] Bearer was not authenticated. Failure message: IDX10223: Lifetime validation failed. The token is expired. ValidTo (UTC): '11/21/2026 1:38:37 PM', Current time (UTC): '11/21/2026 3:45:01 PM'.
+2026-11-21 21:45:01.491 +06:00 [INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2026-11-21 21:45:01.510 +06:00 [INF] AuthenticationScheme: Bearer was challenged.
+2026-11-21 21:45:01.510 +06:00 [INF] HTTP POST /api/ai/improve-description responded 401 in 373.3192 ms
+2026-11-21 21:45:01.540 +06:00 [INF] Request finished HTTP/2 POST https://localhost:44341/api/ai/improve-description - 401 null null 410.1038ms
+2026-11-21 21:45:06.447 +06:00 [INF] Request starting HTTP/2 POST https://localhost:44341/api/auth/login - application/json 61
+2026-11-21 21:45:06.471 +06:00 [INF] Executing endpoint 'SmartTask.API.Controllers.AuthController.Login (SmartTask.API)'
+2026-11-21 21:45:06.531 +06:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(LoginRequestDto) on controller SmartTask.API.Controllers.AuthController (SmartTask.API).
+2026-11-21 21:45:07.107 +06:00 [INF] Executed DbCommand (36ms) [Parameters=[@email='?' (Size = 200)], CommandType='"Text"', CommandTimeout='30']
+SELECT [u1].[Id], [u1].[CreatedAt], [u1].[CreatedBy], [u1].[Email], [u1].[FirstName], [u1].[IsActive], [u1].[LastName], [u1].[PasswordHash], [u1].[UpdatedAt], [u1].[UpdatedBy], [s].[Id], [s].[CreatedAt], [s].[RoleId], [s].[UpdatedAt], [s].[UserId], [s].[Id0], [s].[CreatedAt0], [s].[Name], [s].[UpdatedAt0]
+FROM (
+    SELECT TOP(1) [u].[Id], [u].[CreatedAt], [u].[CreatedBy], [u].[Email], [u].[FirstName], [u].[IsActive], [u].[LastName], [u].[PasswordHash], [u].[UpdatedAt], [u].[UpdatedBy]
+    FROM [Users] AS [u]
+    WHERE [u].[Email] = @email
+) AS [u1]
+LEFT JOIN (
+    SELECT [u0].[Id], [u0].[CreatedAt], [u0].[RoleId], [u0].[UpdatedAt], [u0].[UserId], [r].[Id] AS [Id0], [r].[CreatedAt] AS [CreatedAt0], [r].[Name], [r].[UpdatedAt] AS [UpdatedAt0]
+    FROM [UserRoles] AS [u0]
+    INNER JOIN [Roles] AS [r] ON [u0].[RoleId] = [r].[Id]
+) AS [s] ON [u1].[Id] = [s].[UserId]
+ORDER BY [u1].[Id], [s].[Id]
+2026-11-21 21:45:07.858 +06:00 [INF] Executed DbCommand (21ms) [Parameters=[@p0='?' (DbType = Guid), @p1='?' (DbType = DateTime2), @p2='?' (DbType = DateTime2), @p3='?' (Size = 4000), @p4='?' (DbType = DateTime2), @p5='?' (Size = 4000), @p6='?' (DbType = DateTime2), @p7='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [RefreshTokens] ([Id], [CreatedAt], [ExpiresAt], [ReplacedByToken], [RevokedAt], [Token], [UpdatedAt], [UserId])
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7);
+2026-11-21 21:45:07.940 +06:00 [INF] Executing OkObjectResult, writing value of type 'AuthResponseDto'.
+2026-11-21 21:45:08.021 +06:00 [INF] Executed action SmartTask.API.Controllers.AuthController.Login (SmartTask.API) in 1477.8248ms
+2026-11-21 21:45:08.023 +06:00 [INF] Executed endpoint 'SmartTask.API.Controllers.AuthController.Login (SmartTask.API)'
+2026-11-21 21:45:08.031 +06:00 [INF] HTTP POST /api/auth/login responded 200 in 1579.7266 ms
+2026-11-21 21:45:08.054 +06:00 [INF] Request finished HTTP/2 POST https://localhost:44341/api/auth/login - 200 null application/json; charset=utf-8 1606.7361ms
+2026-11-21 21:45:13.017 +06:00 [INF] Request starting HTTP/2 POST https://localhost:44341/api/ai/improve-description - application/json 57
+2026-11-21 21:45:13.039 +06:00 [INF] Executing endpoint 'SmartTask.API.Controllers.AIController.ImproveDescription (SmartTask.API)'
+2026-11-21 21:45:13.055 +06:00 [INF] Route matched with {action = "ImproveDescription", controller = "AI"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] ImproveDescription(SmartTask.Application.Features.AI.DTOs.ImproveDescriptionRequestDto) on controller SmartTask.API.Controllers.AIController (SmartTask.API).
+2026-11-21 21:45:14.905 +06:00 [INF] Executing OkObjectResult, writing value of type 'SmartTask.Application.Features.AI.DTOs.ImproveDescriptionResponseDto'.
+2026-11-21 21:45:14.918 +06:00 [INF] Executed action SmartTask.API.Controllers.AIController.ImproveDescription (SmartTask.API) in 1862.8522ms
+2026-11-21 21:45:14.918 +06:00 [INF] Executed endpoint 'SmartTask.API.Controllers.AIController.ImproveDescription (SmartTask.API)'
+2026-11-21 21:45:14.919 +06:00 [INF] HTTP POST /api/ai/improve-description responded 200 in 1901.6245 ms
+2026-11-21 21:45:14.920 +06:00 [INF] Request finished HTTP/2 POST https://localhost:44341/api/ai/improve-description - 200 null application/json; charset=utf-8 1903.0089ms

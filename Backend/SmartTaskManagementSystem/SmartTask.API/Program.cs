@@ -161,6 +161,12 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.Configure<DefaultAdminSettings>(
     builder.Configuration.GetSection("DefaultAdmin"));
 
+builder.Services.AddCors(options =>
+options.AddPolicy("Angular", policy => policy
+        .WithOrigins("http://localhost:4200")
+        .AllowAnyHeader()
+        .AllowAnyMethod()));
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -185,6 +191,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("Angular");
 
 app.UseRateLimiter();
 

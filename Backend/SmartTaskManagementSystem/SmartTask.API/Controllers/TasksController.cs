@@ -50,7 +50,16 @@ public class TasksController : ControllerBase
             await _taskService.GetPagedAsync(
                 request);
 
-        return Ok(result);
+        return Ok(
+            new ApiResponse<object>
+            {
+                Success = true,
+
+                Message =
+                    "Tasks retrieved successfully.",
+
+                Data = result
+            });
     }
 
     [HttpGet("{id:guid}")]
@@ -61,7 +70,16 @@ public class TasksController : ControllerBase
             await _taskService.GetByIdAsync(
                 id);
 
-        return Ok(result);
+        return Ok(
+            new ApiResponse<object>
+            {
+                Success = true,
+
+                Message =
+                    "Task retrieved successfully.",
+
+                Data = result
+            });
     }
 
     [HttpPut("{id:guid}")]
@@ -75,7 +93,16 @@ public class TasksController : ControllerBase
             await _taskService.UpdateAsync(
                 request);
 
-        return Ok(result);
+        return Ok(
+            new ApiResponse<object>
+            {
+                Success = true,
+
+                Message =
+                    "Task updated successfully.",
+
+                Data = result
+            });
     }
 
     [HttpDelete("{id:guid}")]
@@ -96,10 +123,16 @@ public class TasksController : ControllerBase
             taskId,
             request.UserId);
 
-        return Ok(new
-        {
-            Message = "Task assigned successfully."
-        });
+        return Ok(
+            new ApiResponse<object>
+            {
+                Success = true,
+
+                Message =
+                    "Task assigned successfully.",
+
+                Data = null
+            });
     }
 
     [HttpPut("{taskId:guid}/status")]
@@ -111,9 +144,15 @@ public class TasksController : ControllerBase
             taskId,
             request);
 
-        return Ok(new
-        {
-            Message = "Task status updated successfully."
-        });
+        return Ok(
+            new ApiResponse<object>
+            {
+                Success = true,
+
+                Message =
+                    "Task status updated successfully.",
+
+                Data = null
+            });
     }
 }
