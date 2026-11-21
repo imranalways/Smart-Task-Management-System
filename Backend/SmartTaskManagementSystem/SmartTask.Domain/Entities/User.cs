@@ -16,4 +16,10 @@ public class User : AuditableEntity
     public ICollection<ProjectMember> ProjectMemberships
     { get; set; }
     = new List<ProjectMember>();
+    public ICollection<TaskItem> AssignedTasks
+    {
+        get;
+        set;
+    }
+    = new List<TaskItem>();
 }

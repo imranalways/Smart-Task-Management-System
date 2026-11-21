@@ -180,6 +180,60 @@ namespace SmartTask.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SmartTask.Domain.Entities.TaskItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("AssignedToUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedToUserId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Tasks");
+                });
+
             modelBuilder.Entity("SmartTask.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -299,6 +353,24 @@ namespace SmartTask.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SmartTask.Domain.Entities.TaskItem", b =>
+                {
+                    b.HasOne("SmartTask.Domain.Entities.User", "AssignedToUser")
+                        .WithMany("AssignedTasks")
+                        .HasForeignKey("AssignedToUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SmartTask.Domain.Entities.Project", "Project")
+                        .WithMany("Tasks")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AssignedToUser");
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("SmartTask.Domain.Entities.UserRole", b =>
                 {
                     b.HasOne("SmartTask.Domain.Entities.Role", "Role")
@@ -321,6 +393,8 @@ namespace SmartTask.Infrastructure.Migrations
             modelBuilder.Entity("SmartTask.Domain.Entities.Project", b =>
                 {
                     b.Navigation("Members");
+
+                    b.Navigation("Tasks");
                 });
 
             modelBuilder.Entity("SmartTask.Domain.Entities.Role", b =>
@@ -330,6 +404,8 @@ namespace SmartTask.Infrastructure.Migrations
 
             modelBuilder.Entity("SmartTask.Domain.Entities.User", b =>
                 {
+                    b.Navigation("AssignedTasks");
+
                     b.Navigation("ProjectMemberships");
 
                     b.Navigation("RefreshTokens");

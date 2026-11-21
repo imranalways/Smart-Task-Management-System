@@ -1,9 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SmartTask.Application.Contracts.AI;
 using SmartTask.Application.Contracts.Authentication;
 using SmartTask.Application.Contracts.Persistence;
 using SmartTask.Application.Contracts.Services;
+using SmartTask.Application.Features.Dashboard.Services;
+using SmartTask.Application.Features.ProjectMembers.Services;
+using SmartTask.Application.Features.Tasks.Services;
+using SmartTask.Infrastructure.AI;
 using SmartTask.Infrastructure.Authentication;
 using SmartTask.Infrastructure.Persistence;
 using SmartTask.Infrastructure.Repositories;
@@ -36,18 +41,46 @@ public static class DependencyInjection
 
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<
-    IProjectRepository,
-    ProjectRepository>();
+        IProjectRepository,
+        ProjectRepository>();
+
+            services.AddScoped<
+                IProjectService,
+                ProjectService>();
+            services.AddScoped<
+        IProjectMemberRepository,
+        ProjectMemberRepository>();
+
+            services.AddScoped<
+                IProjectMemberService,
+                ProjectMemberService>();
+
+            services.AddScoped<
+        ITaskRepository,
+        TaskRepository>();
+
+            services.AddScoped<
+        ITaskService,
+        TaskService>();
+        services.AddScoped<
+        IDashboardService,
+        DashboardService>();
+
+        services.Configure<AiSettings>(
+    configuration.GetSection("AI"));
 
         services.AddScoped<
-            IProjectService,
-            ProjectService>();
+            IAiProvider,
+            GeminiProvider>();
 
+        services.AddScoped<
+            IAIService,
+            AIService>();
 
 
         services.AddScoped<
-            IJwtTokenService,
-            JwtTokenService>();
+        IJwtTokenService,
+        JwtTokenService>();
         services.AddScoped<
         IAuthService,
         AuthService>();

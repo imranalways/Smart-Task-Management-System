@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using SmartTask.Application.Common.Models;
 using SmartTask.Application.Contracts.Services;
 using SmartTask.Application.Features.Projects.DTOs;
 
 namespace SmartTask.API.Controllers
 {
+    [EnableRateLimiting("api")]
     [ApiController]
     [Route("api/projects")]
     [Authorize]
