@@ -22,7 +22,8 @@ public class UserRepository : IUserRepository
         string email)
     {
         return await _context.Users
-            .Include(x => x.Role)
+            .Include(x => x.UserRoles)
+            .ThenInclude(x => x.Role)
             .FirstOrDefaultAsync(
                 x => x.Email == email);
     }
@@ -31,7 +32,8 @@ public class UserRepository : IUserRepository
         Guid id)
     {
         return await _context.Users
-            .Include(x => x.Role)
+            .Include(x => x.UserRoles)
+            .ThenInclude(x => x.Role)
             .FirstOrDefaultAsync(
                 x => x.Id == id);
     }

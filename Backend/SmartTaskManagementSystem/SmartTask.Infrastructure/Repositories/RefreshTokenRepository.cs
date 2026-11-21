@@ -26,10 +26,10 @@ public class RefreshTokenRepository
             string token)
     {
         return await _context.RefreshTokens
-            .Include(x => x.User)
+    .Include(x => x.User)
+        .ThenInclude(x => x.UserRoles)
             .ThenInclude(x => x.Role)
-            .FirstOrDefaultAsync(
-                x => x.Token == token);
+    .FirstOrDefaultAsync(x => x.Token == token);
     }
 
     public async Task UpdateAsync(

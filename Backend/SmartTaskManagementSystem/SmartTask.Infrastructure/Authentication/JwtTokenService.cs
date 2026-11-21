@@ -20,6 +20,9 @@ public class JwtTokenService : IJwtTokenService
     public Task<string> GenerateAccessTokenAsync(
         User user)
     {
+        var roleName = user.UserRoles
+                    .FirstOrDefault()?.Role?.Name ?? nameof(SmartTask.Domain.Enums.UserRole.TeamMember);
+
         var claims = new List<Claim>
                 {
                     new Claim(
@@ -32,7 +35,7 @@ public class JwtTokenService : IJwtTokenService
 
                     new Claim(
                         ClaimTypes.Role,
-                        user.Role.Name)
+                        roleName)
                 };
 
         var key = new SymmetricSecurityKey(

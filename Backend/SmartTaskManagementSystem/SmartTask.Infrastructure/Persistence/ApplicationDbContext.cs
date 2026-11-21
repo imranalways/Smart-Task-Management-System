@@ -13,9 +13,14 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Role> Roles => Set<Role>();
 
-    public DbSet<RefreshToken> RefreshTokens
-        => Set<RefreshToken>();
+    public DbSet<UserRole> UserRoles => Set<UserRole>();
 
+    public DbSet<RefreshToken> RefreshTokens =>
+        Set<RefreshToken>();
+    public DbSet<Project> Projects =>
+    Set<Project>();
+    public DbSet<ProjectMember> ProjectMembers =>
+        Set<ProjectMember>();
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)
     {

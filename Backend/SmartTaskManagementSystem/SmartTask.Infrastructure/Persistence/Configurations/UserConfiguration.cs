@@ -29,9 +29,5 @@ public class UserConfiguration
 
         builder.HasIndex(x => x.Email)
             .IsUnique();
-
-        builder.HasOne(x => x.Role)
-            .WithMany(x => x.Users)
-            .HasForeignKey(x => x.RoleId);
     }
 }

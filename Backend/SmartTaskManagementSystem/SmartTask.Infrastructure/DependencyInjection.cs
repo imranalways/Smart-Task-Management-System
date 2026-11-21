@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SmartTask.Application.Contracts.Authentication;
 using SmartTask.Application.Contracts.Persistence;
+using SmartTask.Application.Contracts.Services;
 using SmartTask.Infrastructure.Authentication;
 using SmartTask.Infrastructure.Persistence;
 using SmartTask.Infrastructure.Repositories;
@@ -27,17 +28,22 @@ public static class DependencyInjection
             configuration.GetSection(
                 "JwtSettings"));
 
+        services.AddScoped<IUserRepository, UserRepository>();
+
+        services.AddScoped<IRoleRepository, RoleRepository>();
+
+        services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<
-            IUserRepository,
-            UserRepository>();
+    IProjectRepository,
+    ProjectRepository>();
 
         services.AddScoped<
-            IRoleRepository,
-            RoleRepository>();
+            IProjectService,
+            ProjectService>();
 
-        services.AddScoped<
-            IRefreshTokenRepository,
-            RefreshTokenRepository>();
+
 
         services.AddScoped<
             IJwtTokenService,
@@ -50,6 +56,7 @@ public static class DependencyInjection
         services.AddScoped<
             ICurrentUserService,
             CurrentUserService>();
+
         return services;
     }
 }

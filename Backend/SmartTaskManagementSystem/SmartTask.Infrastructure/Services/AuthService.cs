@@ -15,20 +15,23 @@ namespace SmartTask.Infrastructure.Services
         private readonly IRoleRepository _roleRepository;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IJwtTokenService _jwtTokenService;
+        private readonly IUserRoleRepository _userRoleRepository;
         private readonly PasswordHasher<User> _passwordHasher;
         public AuthService(
-            IUserRepository userRepository,
-            IRoleRepository roleRepository,
-            IRefreshTokenRepository refreshTokenRepository,
-            IJwtTokenService jwtTokenService)
-            {
-                _userRepository = userRepository;
-                _roleRepository = roleRepository;
-                _refreshTokenRepository = refreshTokenRepository;
-                _jwtTokenService = jwtTokenService;
+    IUserRepository userRepository,
+    IRoleRepository roleRepository,
+    IUserRoleRepository userRoleRepository,
+    IRefreshTokenRepository refreshTokenRepository,
+    IJwtTokenService jwtTokenService)
+        {
+            _userRepository = userRepository;
+            _roleRepository = roleRepository;
+            _userRoleRepository = userRoleRepository;
+            _refreshTokenRepository = refreshTokenRepository;
+            _jwtTokenService = jwtTokenService;
 
-                _passwordHasher = new PasswordHasher<User>();
-            }
+            _passwordHasher = new PasswordHasher<User>();
+        }
         public async Task<AuthResponseDto> RegisterAsync(
     RegisterRequestDto request)
         {
@@ -58,8 +61,6 @@ namespace SmartTask.Infrastructure.Services
 
                 Email = request.Email,
 
-                RoleId = teamRole.Id,
-
                 IsActive = true,
 
                 CreatedAt = DateTime.UtcNow,
@@ -75,6 +76,20 @@ namespace SmartTask.Infrastructure.Services
             await _userRepository.AddAsync(user);
 
             await _userRepository.SaveChangesAsync();
+
+            var userRole = new UserRole
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                RoleId = teamRole.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            await _userRoleRepository.AddAsync(userRole);
+
+            await _userRoleRepository.SaveChangesAsync();
+
 
             var accessToken =
                 await _jwtTokenService
@@ -140,7 +155,8 @@ namespace SmartTask.Infrastructure.Services
                 FullName =
                     $"{user.FirstName} {user.LastName}",
 
-                Role = user.Role.Name
+                Role = user.UserRoles
+                    .FirstOrDefault()?.Role?.Name ?? string.Empty
             };
         }
         private async Task SaveRefreshTokenAsync(
@@ -211,7 +227,8 @@ RefreshTokenAsync(string token)
                 Email = refreshToken.User.Email,
                 FullName =
                     $"{refreshToken.User.FirstName} {refreshToken.User.LastName}",
-                Role = refreshToken.User.Role.Name
+                Role = refreshToken.User.UserRoles
+                    .FirstOrDefault()?.Role?.Name ?? string.Empty
             };
         }
         public async Task LogoutAsync(
