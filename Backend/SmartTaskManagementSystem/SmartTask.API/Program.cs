@@ -7,6 +7,8 @@ using SmartTask.API.Middleware;
 using SmartTask.Application;
 using SmartTask.Infrastructure;
 using SmartTask.Infrastructure.Authentication;
+using SmartTask.Infrastructure.Persistence.Seeders;
+using SmartTask.Infrastructure.Persistence.Seeds;
 using System.Text;
 using System.Threading.RateLimiting;
 
@@ -156,9 +158,16 @@ builder.Services.AddRateLimiter(options =>
 });
 
 #endregion
+builder.Services.Configure<DefaultAdminSettings>(
+    builder.Configuration.GetSection("DefaultAdmin"));
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    await AdminSeeder.SeedAsync(
+        scope.ServiceProvider);
+}
 #region Middleware
 
 app.UseMiddleware<

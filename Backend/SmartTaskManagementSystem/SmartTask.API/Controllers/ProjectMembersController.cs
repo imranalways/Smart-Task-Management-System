@@ -3,12 +3,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using SmartTask.Application.Features.ProjectMembers.DTOs;
 using SmartTask.Application.Features.ProjectMembers.Services;
+using SmartTask.Domain.Constants;
 
 namespace SmartTask.API.Controllers;
 
 [EnableRateLimiting("api")]
 [ApiController]
-[Authorize(Roles = "Admin,ProjectManager")]
+[Authorize(
+    Roles =
+        $"{Roles.Admin},{Roles.ProjectManager}")]
 [Route("api/projects/{projectId:guid}/members")]
 public class ProjectMembersController
     : ControllerBase

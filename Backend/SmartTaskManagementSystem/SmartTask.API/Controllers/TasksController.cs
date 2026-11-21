@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using SmartTask.Application.Common.Models;
+using SmartTask.Application.Features.Projects.DTOs;
 using SmartTask.Application.Features.Tasks.DTOs;
 using SmartTask.Application.Features.Tasks.Services;
 
@@ -29,7 +30,16 @@ public class TasksController : ControllerBase
             await _taskService.CreateAsync(
                 request);
 
-        return Ok(result);
+        return Ok(
+                new ApiResponse<TaskDto>
+                {
+                    Success = true,
+
+                    Message =
+                        "Task created successfully.",
+
+                    Data = result
+                });
     }
 
     [HttpGet]

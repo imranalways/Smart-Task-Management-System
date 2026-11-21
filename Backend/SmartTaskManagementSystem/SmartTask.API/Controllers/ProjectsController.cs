@@ -4,13 +4,16 @@ using Microsoft.AspNetCore.RateLimiting;
 using SmartTask.Application.Common.Models;
 using SmartTask.Application.Contracts.Services;
 using SmartTask.Application.Features.Projects.DTOs;
+using SmartTask.Domain.Constants;
 
 namespace SmartTask.API.Controllers
 {
     [EnableRateLimiting("api")]
     [ApiController]
     [Route("api/projects")]
-    [Authorize]
+    [Authorize(
+    Roles =
+        $"{Roles.Admin},{Roles.ProjectManager}")]
     public class ProjectsController : ControllerBase
     {
         private readonly IProjectService _projectService;
@@ -27,7 +30,16 @@ namespace SmartTask.API.Controllers
                 await _projectService
                     .CreateAsync(request);
 
-            return Ok(result);
+            return Ok(
+                new ApiResponse<ProjectDto>
+                {
+                    Success = true,
+
+                    Message =
+                        "Project created successfully.",
+
+                    Data = result
+                });
         }
         [HttpGet]
         public async Task<IActionResult> GetProjects(
