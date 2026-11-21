@@ -1,1 +1,8 @@
-<p>main-layout works!</p>
+<div class="layout">
+  <aside class="sidebar">
+    <h5>Smart Task</h5>
+    <p class="small mb-3">{{ auth.getUserName() }} ({{ auth.getRole() }})</p>
+    <button class="btn btn-sm btn-outline-light" (click)="logout()">Logout</button>
+  </aside>
+  <main class="content"><router-outlet /></main>
+</div>

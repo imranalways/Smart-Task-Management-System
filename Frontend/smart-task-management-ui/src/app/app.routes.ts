@@ -22,31 +22,22 @@ export const routes: Routes = [
       .then(m => m.MainLayoutComponent),
 
     children: [
+    {
+    path: '',
+    redirectTo: 'dashboard',
+    pathMatch: 'full'
+    },
+    {
+    path: 'dashboard',
+    loadChildren: () =>
+    import('./features/dashboard/dashboard.routes')
+        .then(m => m.DASHBOARD_ROUTES)
+    }
+]
+},
 
-      {
-        path: '',
-
-        redirectTo: 'dashboard',
-
-        pathMatch: 'full'
-      }
-    ]
-  },
-
-  {
-    path: '**',
-
-    redirectTo: 'auth/login'
-  },
-  {
-  path: 'dashboard',
-
-  loadChildren: () =>
-    import(
-      './features/dashboard/dashboard.routes'
-    )
-    .then(
-      m =>
-      m.DASHBOARD_ROUTES)
+{
+path: '**',
+redirectTo: 'auth/login'
 }
-];
+ ];
