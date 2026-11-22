@@ -42,7 +42,7 @@
             <h2>{{ task()!.title }}</h2>
           </div>
         </div>
-    @if (task()!.assignedToUserId) {
+    @if (canUpdateTasks || task()!.assignedToUserId) {
         <a
           [routerLink]="['/tasks/edit', task()!.id]"
           class="btn-edit">
@@ -97,7 +97,7 @@
         </div>
 
       </div>
-    @if (task()!.assignedToUserId) {
+    @if (canUpdateTasks || task()!.assignedToUserId) {
       <div class="status-section">
         <div>
           <h3>Update Task Status</h3>

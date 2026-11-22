@@ -48,6 +48,14 @@ public class DashboardService : IDashboardService
         var taskQuery = _context.Tasks
             .Where(t => projectQuery.Any(p => p.Id == t.ProjectId));
 
+        // Team Members only see their personally assigned tasks
+        // in their accessible projects.
+        if (role == Roles.TeamMember)
+        {
+            taskQuery = taskQuery.Where(
+                t => t.AssignedToUserId == userId);
+        }
+
         var totalProjects = await projectQuery.CountAsync();
 
         var totalTasks = await taskQuery.CountAsync();
@@ -81,7 +89,9 @@ public class DashboardService : IDashboardService
         var upcomingTasks = await taskQuery
             .Where(t =>
                 t.DueDate >= now &&
-                t.DueDate <= nextSevenDays)
+                t.DueDate <= nextSevenDays &&
+                t.Status != TaskItemStatus.Completed &&
+                t.Status != TaskItemStatus.Cancelled)
             .OrderBy(t => t.DueDate)
             .Take(10)
             .Select(t => new UpcomingTaskDto

@@ -3,6 +3,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../../core/services/auth.service';
 
 import { TaskService } from '../../../core/services/task.service';
 import { Task } from '../../../core/models/task/task.model';
@@ -17,6 +18,7 @@ import { Task } from '../../../core/models/task/task.model';
 export class TaskDetailsComponent implements OnInit {
   private readonly taskService = inject(TaskService);
   private readonly route = inject(ActivatedRoute);
+  private readonly authService = inject(AuthService);
 
   readonly task = signal<Task | null>(null);
   readonly loading = signal(true);
@@ -46,6 +48,12 @@ export class TaskDetailsComponent implements OnInit {
 
     this.loadTask();
   }
+get canUpdateTasks(): boolean {
+    const role = this.authService.getRole();
+
+    return role === 'Admin' || role === 'ProjectManager';
+  }
+
 
   loadTask(): void {
     this.loading.set(true);
