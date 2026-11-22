@@ -1,8 +1,10 @@
-﻿using SmartTask.Application.Common.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using SmartTask.Application.Common.Models;
 using SmartTask.Application.Contracts.Persistence;
 using SmartTask.Application.Contracts.Services;
 using SmartTask.Application.Exceptions;
 using SmartTask.Application.Features.Projects.DTOs;
+using SmartTask.Domain.Constants;
 using SmartTask.Domain.Entities;
 using SmartTask.Domain.Enums;
 
@@ -12,13 +14,16 @@ public class ProjectService : IProjectService
 {
     private readonly IProjectRepository _projectRepository;
     private readonly ICurrentUserService _currentUserService;
+    private readonly ApplicationDbContext _context;
 
     public ProjectService(
         IProjectRepository projectRepository,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        ApplicationDbContext context)
     {
         _projectRepository = projectRepository;
         _currentUserService = currentUserService;
+        _context = context;
     }
 
     public async Task<ProjectDto> CreateAsync(
@@ -79,7 +84,7 @@ public class ProjectService : IProjectService
             throw new NotFoundException(
                 "Project not found.");
         }
-
+        EnsureCanManageProject(project);
         project.Name = request.Name;
 
         project.Description = request.Description;
@@ -110,47 +115,43 @@ public class ProjectService : IProjectService
             throw new NotFoundException(
                 "Project not found.");
         }
-
+        EnsureCanManageProject(project);
         await _projectRepository.DeleteAsync(
             project);
 
         await _projectRepository.SaveChangesAsync();
     }
 
-    public async Task<ProjectDto> GetByIdAsync(
-        Guid id)
+    public async Task<ProjectDto> GetByIdAsync(Guid id)
     {
-        var project =
-            await _projectRepository.GetByIdAsync(id);
+        var project = await _projectRepository.GetAccessibleByIdAsync(
+            id,
+            _currentUserService.UserId,
+            _currentUserService.Role);
 
         if (project is null)
         {
-            throw new NotFoundException(
-                "Project not found.");
+            throw new NotFoundException("Project not found.");
         }
 
         return MapToDto(project);
     }
 
-    public async Task<PagedResponse<ProjectDto>>
-        GetPagedAsync(
-            PagedRequest request)
+    public async Task<PagedResponse<ProjectDto>> GetPagedAsync(
+    PagedRequest request)
     {
         var pagedProjects =
-            await _projectRepository.GetPagedAsync(
-                request);
+            await _projectRepository.GetAccessiblePagedAsync(
+                request,
+                _currentUserService.UserId,
+                _currentUserService.Role);
 
         return new PagedResponse<ProjectDto>
         {
             PageNumber = pagedProjects.PageNumber,
-
             PageSize = pagedProjects.PageSize,
-
-            TotalRecords =
-                pagedProjects.TotalRecords,
-
-            TotalPages =
-                pagedProjects.TotalPages,
+            TotalRecords = pagedProjects.TotalRecords,
+            TotalPages = pagedProjects.TotalPages,
 
             Items = pagedProjects.Items
                 .Select(MapToDto)
@@ -182,5 +183,22 @@ public class ProjectService : IProjectService
                     ? $"{project.CreatedByUser.FirstName} {project.CreatedByUser.LastName}"
                     : string.Empty
         };
+    }
+    private void EnsureCanManageProject(Project project)
+    {
+        var role = _currentUserService.Role;
+
+        if (role == Roles.Admin)
+            return;
+
+        if (role == Roles.ProjectManager &&
+            (project.CreatedBy == _currentUserService.UserId
+            || project.Members.Any(m=>m.UserId == _currentUserService.UserId)
+            )
+            )
+            return;
+
+        throw new ForbiddenException(
+            "You do not have permission to manage this project.");
     }
 }

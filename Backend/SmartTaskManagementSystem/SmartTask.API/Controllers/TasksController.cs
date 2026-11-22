@@ -5,6 +5,7 @@ using SmartTask.Application.Common.Models;
 using SmartTask.Application.Features.Projects.DTOs;
 using SmartTask.Application.Features.Tasks.DTOs;
 using SmartTask.Application.Features.Tasks.Services;
+using SmartTask.Domain.Constants;
 
 namespace SmartTask.API.Controllers;
 
@@ -21,7 +22,7 @@ public class TasksController : ControllerBase
     {
         _taskService = taskService;
     }
-
+    [Authorize(Roles = $"{Roles.Admin},{Roles.ProjectManager}")]
     [HttpPost]
     public async Task<IActionResult> Create(
         CreateTaskRequestDto request)
@@ -81,7 +82,7 @@ public class TasksController : ControllerBase
                 Data = result
             });
     }
-
+    [Authorize(Roles = $"{Roles.Admin},{Roles.ProjectManager}")]
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(
         Guid id,
@@ -104,7 +105,7 @@ public class TasksController : ControllerBase
                 Data = result
             });
     }
-
+    [Authorize(Roles = $"{Roles.Admin},{Roles.ProjectManager}")]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(
         Guid id)
@@ -113,7 +114,7 @@ public class TasksController : ControllerBase
 
         return NoContent();
     }
-
+    [Authorize(Roles = $"{Roles.Admin},{Roles.ProjectManager}")]
     [HttpPost("{taskId:guid}/assign")]
     public async Task<IActionResult> AssignTask(
         Guid taskId,
@@ -154,5 +155,18 @@ public class TasksController : ControllerBase
 
                 Data = null
             });
+    }
+    [HttpGet("my")]
+    public async Task<IActionResult> GetMyTasks(
+    [FromQuery] PagedRequest request)
+    {
+        var result = await _taskService.GetMyTasksAsync(request);
+
+        return Ok(new ApiResponse<object>
+        {
+            Success = true,
+            Message = "My tasks retrieved successfully.",
+            Data = result
+        });
     }
 }

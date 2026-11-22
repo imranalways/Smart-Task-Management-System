@@ -66,6 +66,13 @@ public class ExceptionHandlingMiddleware
                     exception.Message;
                 break;
 
+            case ForbiddenException:
+                context.Response.StatusCode =
+                    (int)HttpStatusCode.Forbidden;
+
+                response.Message = exception.Message;
+                break;
+
             default:
                 context.Response.StatusCode =
                     (int)HttpStatusCode.InternalServerError;

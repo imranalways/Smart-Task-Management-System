@@ -1,107 +1,107 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+using Microsoft.EntityFrameworkCore;
+using SmartTask.Application.Contracts.Services;
 using SmartTask.Application.Features.Dashboard.DTOs;
 using SmartTask.Application.Features.Dashboard.Services;
+using SmartTask.Domain.Constants;
 using SmartTask.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using SmartTask.Infrastructure.Persistence;
 
-namespace SmartTask.Infrastructure.Services
+namespace SmartTask.Infrastructure.Services;
+
+public class DashboardService : IDashboardService
 {
-    public class DashboardService : IDashboardService
+    private readonly ApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public DashboardService(
+        ApplicationDbContext context,
+        ICurrentUserService currentUserService)
     {
-        private readonly ApplicationDbContext _context;
+        _context = context;
+        _currentUserService = currentUserService;
+    }
 
-        public DashboardService(
-            ApplicationDbContext context)
+    public async Task<DashboardSummaryDto> GetSummaryAsync()
+    {
+        var userId = _currentUserService.UserId;
+        var role = _currentUserService.Role;
+
+        // Apply project visibility rules.
+        var projectQuery = _context.Projects.AsQueryable();
+
+        projectQuery = role switch
         {
-            _context = context;
-        }
-        public async Task<DashboardSummaryDto>
-    GetSummaryAsync()
-        {
-            var totalProjects =
-                await _context.Projects.CountAsync();
+            Roles.Admin => projectQuery,
 
-            var totalTasks =
-                await _context.Tasks.CountAsync();
+            Roles.ProjectManager => projectQuery.Where(
+                p => p.CreatedBy == userId
+                || p.Members.Any(m => m.UserId == userId)),
 
-            var completedTasks =
-                await _context.Tasks
-                    .CountAsync(x =>
-                        x.Status ==
-                        TaskItemStatus.Completed);
+            Roles.TeamMember => projectQuery.Where(
+                p => p.Members.Any(m => m.UserId == userId)),
 
-            var pendingTasks =
-                totalTasks - completedTasks;
-            var tasksByStatus =
-    await _context.Tasks
-        .GroupBy(x => x.Status)
-        .Select(x =>
-            new TaskStatusCountDto
+            _ => projectQuery.Where(p => false)
+        };
+
+        // Apply the same visibility rules to tasks.
+        var taskQuery = _context.Tasks
+            .Where(t => projectQuery.Any(p => p.Id == t.ProjectId));
+
+        var totalProjects = await projectQuery.CountAsync();
+
+        var totalTasks = await taskQuery.CountAsync();
+
+        var completedTasks = await taskQuery.CountAsync(
+            t => t.Status == TaskItemStatus.Completed);
+
+        var pendingTasks = totalTasks - completedTasks;
+
+        var tasksByStatus = await taskQuery
+            .GroupBy(t => t.Status)
+            .Select(group => new TaskStatusCountDto
             {
-                Status =
-                    x.Key.ToString(),
-
-                Count =
-                    x.Count()
+                Status = group.Key.ToString(),
+                Count = group.Count()
             })
-        .ToListAsync();
+            .ToListAsync();
 
-            var tasksByPriority =
-    await _context.Tasks
-        .GroupBy(x => x.Priority)
-        .Select(x =>
-            new TaskPriorityCountDto
+        var tasksByPriority = await taskQuery
+            .GroupBy(t => t.Priority)
+            .Select(group => new TaskPriorityCountDto
             {
-                Priority =
-                    x.Key.ToString(),
-
-                Count =
-                    x.Count()
+                Priority = group.Key.ToString(),
+                Count = group.Count()
             })
-        .ToListAsync();
+            .ToListAsync();
 
-            var upcomingTasks =
-    await _context.Tasks
-    .Include(x => x.Project)
-    .Where(x =>
-        x.DueDate >= DateTime.UtcNow
-        &&
-        x.DueDate <=
-            DateTime.UtcNow.AddDays(7))
-    .OrderBy(x => x.DueDate)
-    .Take(10)
-    .Select(x =>
-        new UpcomingTaskDto
-        {
-            TaskId = x.Id,
+        var now = DateTime.UtcNow;
+        var nextSevenDays = now.AddDays(7);
 
-            Title = x.Title,
-
-            DueDate = x.DueDate,
-
-            ProjectName =
-                x.Project.Name
-        })
-    .ToListAsync();
-
-            return new DashboardSummaryDto
+        var upcomingTasks = await taskQuery
+            .Where(t =>
+                t.DueDate >= now &&
+                t.DueDate <= nextSevenDays)
+            .OrderBy(t => t.DueDate)
+            .Take(10)
+            .Select(t => new UpcomingTaskDto
             {
-                TotalProjects = totalProjects,
+                TaskId = t.Id,
+                Title = t.Title,
+                DueDate = t.DueDate,
+                ProjectName = t.Project.Name
+            })
+            .ToListAsync();
 
-                TotalTasks = totalTasks,
-
-                CompletedTasks = completedTasks,
-
-                PendingTasks = pendingTasks,
-
-                TasksByStatus = tasksByStatus,
-
-                TasksByPriority = tasksByPriority,
-
-                UpcomingDueTasks = upcomingTasks
-            };
-        }
+        return new DashboardSummaryDto
+        {
+            TotalProjects = totalProjects,
+            TotalTasks = totalTasks,
+            CompletedTasks = completedTasks,
+            PendingTasks = pendingTasks,
+            TasksByStatus = tasksByStatus,
+            TasksByPriority = tasksByPriority,
+            UpcomingDueTasks = upcomingTasks
+        };
     }
 }

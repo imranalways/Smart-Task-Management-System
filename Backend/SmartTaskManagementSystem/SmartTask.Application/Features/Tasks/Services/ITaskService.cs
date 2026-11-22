@@ -26,4 +26,6 @@ public interface ITaskService
     Task UpdateStatusAsync(
         Guid taskId,
         UpdateTaskStatusRequestDto request);
+    Task<PagedResponse<TaskDto>> GetMyTasksAsync(
+    PagedRequest request);
 }
