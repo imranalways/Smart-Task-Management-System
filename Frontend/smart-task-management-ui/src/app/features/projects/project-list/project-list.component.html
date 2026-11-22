@@ -1,1 +1,302 @@
-<p>project-list works!</p>
+
+<div class="project-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <span class="eyebrow">WORKSPACE</span>
+      <h1>Projects</h1>
+      <p>Manage, organize and track all your projects.</p>
+    </div>
+
+    <button class="btn-create" (click)="createProject()">
+      <i class="fa-solid fa-plus"></i>
+      Create Project
+    </button>
+  </div>
+
+  <!-- Project Statistics -->
+  <div class="project-summary">
+    <div class="summary-card">
+      <div class="summary-icon purple">
+        <i class="fa-solid fa-folder-open"></i>
+      </div>
+      <div>
+        <span>Total Projects</span>
+        <h3>{{ totalRecords }}</h3>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon green">
+        <i class="fa-solid fa-calendar-check"></i>
+      </div>
+      <div>
+        <span>Current Page</span>
+        <h3>{{ pageNumber }} / {{ totalPages || 1 }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Content -->
+  <section class="project-card">
+
+    <div class="card-header">
+      <div>
+        <h2>All Projects</h2>
+        <p>View and manage your project portfolio.</p>
+      </div>
+
+      <button class="btn-refresh" (click)="loadProjects()"
+              [disabled]="loading()">
+        <i class="fa-solid fa-rotate"
+           [class.fa-spin]="loading()"></i>
+        Refresh
+      </button>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="toolbar">
+
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (keyup.enter)="searchProjects()"
+          placeholder="Search projects by name or description..."
+        />
+
+        @if (searchTerm) {
+          <button class="clear-search" (click)="clearSearch()">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        }
+      </div>
+
+      <button class="btn-search" (click)="searchProjects()">
+        Search
+      </button>
+
+      <div class="page-size">
+        <label for="pageSize">Show</label>
+        <select
+          id="pageSize"
+          [ngModel]="pageSize"
+          (ngModelChange)="changePageSize(+$event)">
+          <option [ngValue]="5">5</option>
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="20">20</option>
+          <option [ngValue]="50">50</option>
+        </select>
+      </div>
+
+    </div>
+
+    <!-- Error -->
+    @if (errorMessage()) {
+      <div class="error-message">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        {{ errorMessage() }}
+
+        <button (click)="loadProjects()">Retry</button>
+      </div>
+    }
+
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading projects...</p>
+      </div>
+    }
+
+    <!-- Project Table -->
+    @if (!loading() && !errorMessage()) {
+
+      @if (projects().length > 0) {
+
+        <div class="table-responsive">
+          <table class="project-table">
+
+            <thead>
+              <tr>
+                <th>
+                  <button class="sort-button"
+                          (click)="changeSort('name')">
+                    PROJECT
+                    <i class="fa-solid"
+                       [ngClass]="sortBy === 'name'
+                         ? (descending ? 'fa-arrow-down' : 'fa-arrow-up')
+                         : 'fa-sort'">
+                    </i>
+                  </button>
+                </th>
+
+                <th>STATUS</th>
+
+                <th>
+                  <button class="sort-button"
+                          (click)="changeSort('startDate')">
+                    START DATE
+                    <i class="fa-solid"
+                       [ngClass]="sortBy === 'startDate'
+                         ? (descending ? 'fa-arrow-down' : 'fa-arrow-up')
+                         : 'fa-sort'">
+                    </i>
+                  </button>
+                </th>
+
+                <th>
+                  <button class="sort-button"
+                          (click)="changeSort('endDate')">
+                    DUE DATE
+                    <i class="fa-solid"
+                       [ngClass]="sortBy === 'endDate'
+                         ? (descending ? 'fa-arrow-down' : 'fa-arrow-up')
+                         : 'fa-sort'">
+                    </i>
+                  </button>
+                </th>
+
+                <th>CREATED BY</th>
+                <th class="text-end">ACTIONS</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (project of projects(); track project.id) {
+                <tr>
+
+                  <td>
+                    <div class="project-name">
+                      <div class="project-icon">
+                        <i class="fa-solid fa-folder"></i>
+                      </div>
+
+                      <div>
+                        <strong>{{ project.name }}</strong>
+                        <span>
+                          {{ project.description || 'No description provided' }}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td>
+                    <span class="status-badge"
+                          [ngClass]="getStatusClass(project.status)">
+                      {{ project.status }}
+                    </span>
+                  </td>
+
+                  <td>{{ formatDate(project.startDate) }}</td>
+
+                  <td>{{ formatDate(project.endDate) }}</td>
+
+                  <td>
+                    {{ project.createdByName || 'Unknown' }}
+                  </td>
+
+                  <td>
+                    <div class="action-buttons">
+
+                      <button
+                        title="View project"
+                        (click)="viewProject(project.id)">
+                        <i class="fa-regular fa-eye"></i>
+                      </button>
+
+                      <button
+                        title="Edit project"
+                        (click)="editProject(project.id)">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                      </button>
+
+                      <button
+                        class="delete-action"
+                        title="Delete project"
+                        (click)="deleteProject(project)">
+                        <i class="fa-regular fa-trash-can"></i>
+                      </button>
+
+                    </div>
+                  </td>
+
+                </tr>
+              }
+            </tbody>
+
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+
+          <span class="pagination-info">
+            Showing <strong>{{ firstRecord }}</strong> -
+            <strong>{{ lastRecord }}</strong>
+            of <strong>{{ totalRecords }}</strong> projects
+          </span>
+
+          <div class="pagination-buttons">
+
+            <button
+              (click)="goToPage(pageNumber - 1)"
+              [disabled]="pageNumber <= 1">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+
+            @for (page of pageNumbers; track page) {
+              <button
+                [class.active]="page === pageNumber"
+                (click)="goToPage(page)">
+                {{ page }}
+              </button>
+            }
+
+            <button
+              (click)="goToPage(pageNumber + 1)"
+              [disabled]="pageNumber >= totalPages">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+
+          </div>
+        </div>
+
+      } @else {
+
+        <div class="empty-state">
+          <div class="empty-icon">
+            <i class="fa-regular fa-folder-open"></i>
+          </div>
+
+          <h3>No projects found</h3>
+
+          <p>
+            @if (searchTerm) {
+              Try changing your search keyword.
+            } @else {
+              Get started by creating your first project.
+            }
+          </p>
+
+          @if (!searchTerm) {
+            <button class="btn-create" (click)="createProject()">
+              <i class="fa-solid fa-plus"></i>
+              Create Project
+            </button>
+          } @else {
+            <button class="btn-search" (click)="clearSearch()">
+              Clear Search
+            </button>
+          }
+        </div>
+
+      }
+
+    }
+
+  </section>
+</div>

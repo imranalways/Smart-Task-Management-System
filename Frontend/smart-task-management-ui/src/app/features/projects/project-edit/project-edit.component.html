@@ -1,1 +1,237 @@
-<p>project-edit works!</p>
+
+<div class="project-edit-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+
+    <div>
+      <a routerLink="/projects" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to Projects
+      </a>
+
+      <span class="eyebrow">PROJECT MANAGEMENT</span>
+
+      <h1>Edit Project</h1>
+
+      <p>Update project information and its current status.</p>
+    </div>
+
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+
+    <div class="state-card">
+      <i class="fa-solid fa-spinner fa-spin"></i>
+      Loading project information...
+    </div>
+
+  } @else {
+
+    <form
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+      class="project-form">
+
+      <div class="form-card">
+
+        <!-- Card Heading -->
+        <div class="card-heading">
+
+          <div class="heading-icon">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </div>
+
+          <div>
+            <h2>Project Information</h2>
+            <p>Modify the information below and save your changes.</p>
+          </div>
+
+        </div>
+
+        <!-- Error Message -->
+        @if (errorMessage()) {
+          <div class="alert alert-danger">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            {{ errorMessage() }}
+          </div>
+        }
+
+        <!-- Success Message -->
+        @if (successMessage()) {
+          <div class="alert alert-success">
+            <i class="fa-solid fa-circle-check"></i>
+            {{ successMessage() }}
+          </div>
+        }
+
+        <!-- Form Fields -->
+        <div class="form-fields">
+
+          <!-- Project Name -->
+          <div class="form-group full-width">
+
+            <label for="name">
+              Project Name <span class="required">*</span>
+            </label>
+
+            <input
+              id="name"
+              type="text"
+              formControlName="name"
+              placeholder="Enter project name"
+              maxlength="100"
+              [class.invalid]="name.invalid && name.touched"
+            />
+
+            @if (name.invalid && name.touched) {
+              <small class="validation-message">
+                Project name is required and must contain at least 3 characters.
+              </small>
+            }
+
+          </div>
+
+          <!-- Description -->
+          <div class="form-group full-width">
+
+            <label for="description">
+              Description <span class="required">*</span>
+            </label>
+
+            <textarea
+              id="description"
+              formControlName="description"
+              rows="5"
+              maxlength="1000"
+              placeholder="Describe the project..."
+              [class.invalid]="description.invalid && description.touched"
+            ></textarea>
+
+            <div class="field-footer">
+              <span>Provide a clear overview of the project.</span>
+              <span>{{ description.value.length }}/1000</span>
+            </div>
+
+            @if (description.invalid && description.touched) {
+              <small class="validation-message">
+                Description must contain at least 10 characters.
+              </small>
+            }
+
+          </div>
+
+          <!-- Project Status -->
+          <div class="form-group full-width">
+
+            <label for="status">
+              Project Status <span class="required">*</span>
+            </label>
+
+            <div class="input-with-icon">
+              <i class="fa-solid fa-circle-dot"></i>
+
+              <select id="status" formControlName="status">
+
+                @for (status of statuses; track status.value) {
+                  <option [ngValue]="status.value">
+                    {{ status.label }}
+                  </option>
+                }
+
+              </select>
+            </div>
+
+            <small class="field-hint">
+              Choose the current progress state of this project.
+            </small>
+
+          </div>
+
+          <!-- Start Date -->
+          <div class="form-group">
+
+            <label for="startDate">
+              Start Date <span class="required">*</span>
+            </label>
+
+            <div class="input-with-icon">
+              <i class="fa-regular fa-calendar"></i>
+
+              <input
+                id="startDate"
+                type="date"
+                formControlName="startDate"
+                [class.invalid]="startDate.invalid && startDate.touched"
+              />
+            </div>
+
+            @if (startDate.invalid && startDate.touched) {
+              <small class="validation-message">
+                Please select a start date.
+              </small>
+            }
+
+          </div>
+
+          <!-- End Date -->
+          <div class="form-group">
+
+            <label for="endDate">
+              End Date <span class="required">*</span>
+            </label>
+
+            <div class="input-with-icon">
+              <i class="fa-regular fa-calendar-check"></i>
+
+              <input
+                id="endDate"
+                type="date"
+                formControlName="endDate"
+                [min]="startDate.value"
+                [class.invalid]="endDate.invalid && endDate.touched"
+              />
+            </div>
+
+            @if (endDate.invalid && endDate.touched) {
+              <small class="validation-message">
+                Please select an end date.
+              </small>
+            }
+
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="form-footer">
+
+          <a routerLink="/projects" class="btn-cancel">
+            Cancel
+          </a>
+
+          <button
+            type="submit"
+            class="btn-save"
+            [disabled]="saving()">
+
+            @if (saving()) {
+              <i class="fa-solid fa-spinner fa-spin"></i>
+              Saving Changes...
+            } @else {
+              <i class="fa-solid fa-floppy-disk"></i>
+              Save Changes
+            }
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </form>
+
+  }
+
+</div>

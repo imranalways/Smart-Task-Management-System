@@ -1,1 +1,513 @@
-<p>dashboard works!</p>
+
+<div class="dashboard-page">
+
+  <!-- HEADER -->
+  <header class="dashboard-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Workspace</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <strong>Dashboard</strong>
+      </div>
+
+      <h1>Dashboard</h1>
+
+      <p class="header-subtitle">
+        Here's what's happening with your projects today.
+      </p>
+    </div>
+
+    <div class="header-actions">
+
+      <div class="today-date">
+        <i class="fa-regular fa-calendar"></i>
+        {{ today | date:'EEEE, MMMM d, y' }}
+      </div>
+
+      <button
+        class="refresh-button"
+        type="button"
+        (click)="loadDashboard()"
+        [disabled]="loading()">
+
+        <i
+          class="fa-solid fa-arrows-rotate"
+          [class.fa-spin]="loading()">
+        </i>
+
+        <span>Refresh</span>
+      </button>
+
+    </div>
+
+  </header>
+
+
+  <!-- LOADING -->
+  @if (loading()) {
+
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Preparing your workspace...</p>
+    </div>
+
+  }
+
+
+  <!-- ERROR -->
+  @else if (errorMessage()) {
+
+    <div class="error-state">
+
+      <div class="error-icon">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+
+      <h3>Unable to load dashboard</h3>
+
+      <p>{{ errorMessage() }}</p>
+
+      <button
+        class="primary-button"
+        (click)="loadDashboard()">
+
+        <i class="fa-solid fa-rotate-right"></i>
+        Try again
+
+      </button>
+
+    </div>
+
+  }
+
+
+  <!-- DASHBOARD CONTENT -->
+@else {
+  @if (summary(); as data) {
+    <!-- WELCOME BANNER -->
+    <section class="welcome-banner">
+
+      <div class="welcome-content">
+
+        <div class="welcome-label">
+          <span></span>
+          YOUR PRODUCTIVITY OVERVIEW
+        </div>
+
+        <h2>Make today count.</h2>
+
+        <p>
+          Stay focused, manage your priorities,
+          and keep your team moving forward.
+        </p>
+
+        <div class="welcome-stats">
+          <div>
+            <strong>{{ data.completedTasks }}</strong>
+            <span>Tasks completed</span>
+          </div>
+
+          <div class="welcome-divider"></div>
+
+          <div>
+            <strong>{{ completionRate() }}%</strong>
+            <span>Completion rate</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="welcome-illustration">
+        <div class="illustration-circle circle-one"></div>
+        <div class="illustration-circle circle-two"></div>
+
+        <div class="illustration-card">
+          <div class="illustration-card-icon">
+            <i class="fa-solid fa-chart-line"></i>
+          </div>
+
+          <div class="illustration-card-text">
+            <strong>Keep it going!</strong>
+            <span>Every task matters.</span>
+          </div>
+
+          <i class="fa-solid fa-arrow-trend-up trend-icon"></i>
+        </div>
+
+        <div class="illustration-check check-one">
+          <i class="fa-solid fa-check"></i>
+        </div>
+
+        <div class="illustration-check check-two">
+          <i class="fa-solid fa-check"></i>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- KPI CARDS -->
+    <section class="stats-grid">
+
+      <article class="stat-card">
+
+        <div class="stat-top">
+          <div class="stat-icon projects-icon">
+            <i class="fa-solid fa-folder-open"></i>
+          </div>
+
+          <span class="stat-tag">WORKSPACE</span>
+        </div>
+
+        <div class="stat-value">
+          {{ data.totalProjects | number }}
+        </div>
+
+        <div class="stat-label">Total Projects</div>
+
+        <div class="stat-footer">
+          <span>Projects in your workspace</span>
+        </div>
+
+      </article>
+
+
+      <article class="stat-card">
+
+        <div class="stat-top">
+          <div class="stat-icon tasks-icon">
+            <i class="fa-solid fa-list-check"></i>
+          </div>
+
+          <span class="stat-tag">OVERVIEW</span>
+        </div>
+
+        <div class="stat-value">
+          {{ data.totalTasks | number }}
+        </div>
+
+        <div class="stat-label">Total Tasks</div>
+
+        <div class="stat-footer">
+          <span>All tracked tasks</span>
+        </div>
+
+      </article>
+
+
+      <article class="stat-card">
+
+        <div class="stat-top">
+          <div class="stat-icon completed-icon">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+
+          <span class="stat-tag positive-tag">COMPLETED</span>
+        </div>
+
+        <div class="stat-value">
+          {{ data.completedTasks | number }}
+        </div>
+
+        <div class="stat-label">Completed Tasks</div>
+
+        <div class="stat-footer">
+          <span>{{ completionRate() }}% of total tasks</span>
+        </div>
+
+      </article>
+
+
+      <article class="stat-card">
+
+        <div class="stat-top">
+          <div class="stat-icon pending-icon">
+            <i class="fa-solid fa-clock"></i>
+          </div>
+
+          <span class="stat-tag warning-tag">PENDING</span>
+        </div>
+
+        <div class="stat-value">
+          {{ data.pendingTasks | number }}
+        </div>
+
+        <div class="stat-label">Pending Tasks</div>
+
+        <div class="stat-footer">
+          <span>Tasks not completed</span>
+        </div>
+
+      </article>
+
+    </section>
+
+
+    <!-- CHARTS -->
+    <section class="analytics-grid">
+
+      <!-- TASK STATUS -->
+      <article class="dashboard-card status-card">
+
+        <div class="card-header">
+
+          <div>
+            <h3>Task Overview</h3>
+            <p>Distribution by task status</p>
+          </div>
+
+          <span class="card-icon">
+            <i class="fa-solid fa-chart-pie"></i>
+          </span>
+
+        </div>
+
+
+        <div class="status-chart-content">
+
+          <div
+            class="donut-chart"
+            [style.background]="statusChartBackground()">
+
+            <div class="donut-hole">
+              <strong>{{ data.totalTasks }}</strong>
+              <span>Total Tasks</span>
+            </div>
+
+          </div>
+
+
+          <div class="status-legend">
+
+            @for (
+              item of data.tasksByStatus;
+              track trackByStatus($index, item)
+            ) {
+
+              <div class="legend-item">
+
+                <div class="legend-label">
+                  <span
+                    class="legend-dot"
+                    [style.background]="getStatusColor(item.status)">
+                  </span>
+
+                  <span>{{ formatStatus(item.status) }}</span>
+                </div>
+
+                <div class="legend-value">
+                  <strong>{{ item.count }}</strong>
+                  <span>{{ getStatusPercentage(item) }}%</span>
+                </div>
+
+              </div>
+
+            }
+
+            @if (data.tasksByStatus.length === 0) {
+              <p class="empty-message">
+                No task status data available.
+              </p>
+            }
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRIORITY -->
+      <article class="dashboard-card priority-card">
+
+        <div class="card-header">
+
+          <div>
+            <h3>Task Priorities</h3>
+            <p>Tasks grouped by priority level</p>
+          </div>
+
+          <span class="card-icon">
+            <i class="fa-solid fa-chart-column"></i>
+          </span>
+
+        </div>
+
+
+        <div class="priority-list">
+
+          @for (
+            item of data.tasksByPriority;
+            track trackByPriority($index, item)
+          ) {
+
+            <div class="priority-item">
+
+              <div class="priority-info">
+
+                <div class="priority-name">
+                  <span
+                    class="priority-dot"
+                    [style.background]="getPriorityColor(item.priority)">
+                  </span>
+
+                  <strong>{{ item.priority }}</strong>
+                </div>
+
+                <div class="priority-count">
+                  {{ item.count }}
+                  <span>tasks</span>
+                </div>
+
+              </div>
+
+              <div class="priority-progress">
+                <div
+                  class="priority-progress-fill"
+                  [style.width.%]="getPriorityPercentage(item)"
+                  [style.background]="getPriorityColor(item.priority)">
+                </div>
+              </div>
+
+            </div>
+
+          }
+
+          @if (data.tasksByPriority.length === 0) {
+            <p class="empty-message">
+              No priority data available.
+            </p>
+          }
+
+        </div>
+
+      </article>
+
+    </section>
+
+
+    <!-- UPCOMING TASKS -->
+    <section class="dashboard-card upcoming-card">
+
+      <div class="card-header upcoming-header">
+
+        <div>
+          <h3>Upcoming Deadlines</h3>
+          <p>Tasks due within the next 7 days</p>
+        </div>
+
+        <div class="upcoming-count">
+          <i class="fa-regular fa-calendar-check"></i>
+          {{ data.upcomingDueTasks.length }} upcoming
+        </div>
+
+      </div>
+
+
+      @if (data.upcomingDueTasks.length > 0) {
+
+        <div class="table-responsive">
+
+          <table class="upcoming-table">
+
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Project</th>
+                <th>Due Date</th>
+                <th>Deadline</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              @for (
+                task of data.upcomingDueTasks;
+                track task.taskId
+              ) {
+
+                <tr>
+
+                  <td>
+                    <div class="task-title-cell">
+                      <div class="task-row-icon">
+                        <i class="fa-solid fa-check"></i>
+                      </div>
+
+                      <strong>{{ task.title }}</strong>
+                    </div>
+                  </td>
+
+                  <td>
+                    <span class="project-name">
+                      {{ task.projectName }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <span class="due-date">
+                      <i class="fa-regular fa-calendar"></i>
+                      {{ formatDueDate(task.dueDate) }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <span
+                      class="deadline-badge"
+                      [class.overdue]="isOverdue(task.dueDate)">
+
+                      <i class="fa-regular fa-clock"></i>
+
+                      {{ isOverdue(task.dueDate)
+                        ? 'Overdue'
+                        : 'Upcoming' }}
+
+                    </span>
+                  </td>
+
+                </tr>
+
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      } @else {
+
+        <div class="empty-upcoming">
+
+          <div class="empty-calendar-icon">
+            <i class="fa-regular fa-calendar-check"></i>
+          </div>
+
+          <h4>You're all caught up!</h4>
+
+          <p>
+            There are no upcoming deadlines in the next seven days.
+          </p>
+
+        </div>
+
+      }
+
+    </section>
+
+
+    <!-- FOOTER -->
+    <footer class="dashboard-footer">
+      <span>
+        <i class="fa-solid fa-circle-check"></i>
+        You're viewing the latest dashboard data.
+      </span>
+
+      <span>TaskFlow Workspace</span>
+    </footer>
+
+  }
+}
+</div>

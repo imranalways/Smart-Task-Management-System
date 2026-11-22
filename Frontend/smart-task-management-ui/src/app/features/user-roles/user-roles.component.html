@@ -1,0 +1,376 @@
+
+<div class="user-roles-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+
+    <div>
+      <span class="page-eyebrow">ADMINISTRATION</span>
+      <h2>User Role Management</h2>
+      <p>Manage users and control their access permissions.</p>
+    </div>
+
+    <button
+      type="button"
+      class="refresh-button"
+      (click)="loadData()"
+      [disabled]="loading()">
+
+      <i
+        class="fa-solid fa-rotate"
+        [class.fa-spin]="loading()">
+      </i>
+
+      Refresh
+    </button>
+
+  </div>
+
+  <!-- Error Message -->
+  @if (errorMessage()) {
+    <div class="alert-message alert-error">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- Success Message -->
+  @if (successMessage()) {
+    <div class="alert-message alert-success">
+      <i class="fa-solid fa-circle-check"></i>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  <!-- Statistics -->
+  <div class="statistics-grid">
+
+    <div class="stat-card">
+      <div class="stat-icon total-icon">
+        <i class="fa-solid fa-users"></i>
+      </div>
+
+      <div>
+        <span>Total Users</span>
+        <h3>{{ totalUsers() }}</h3>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon admin-icon">
+        <i class="fa-solid fa-user-shield"></i>
+      </div>
+
+      <div>
+        <span>Administrators</span>
+        <h3>{{ adminCount() }}</h3>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon manager-icon">
+        <i class="fa-solid fa-user-tie"></i>
+      </div>
+
+      <div>
+        <span>Project Managers</span>
+        <h3>{{ managerCount() }}</h3>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon member-icon">
+        <i class="fa-solid fa-user"></i>
+      </div>
+
+      <div>
+        <span>Team Members</span>
+        <h3>{{ memberCount() }}</h3>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Users Section -->
+  <div class="users-card">
+
+    <div class="users-card-header">
+
+      <div>
+        <h3>System Users</h3>
+        <p>Search users and manage their assigned roles.</p>
+      </div>
+
+      <span class="user-count">
+        {{ filteredUsers().length }} users
+      </span>
+
+    </div>
+
+    <!-- Email Search -->
+    <div class="search-section">
+
+      <div class="search-input-wrapper">
+
+        <i class="fa-solid fa-envelope"></i>
+
+        <input
+          type="text"
+          [(ngModel)]="searchEmail"
+          placeholder="Enter user email address..."
+          (keyup.enter)="searchUsers()"
+          aria-label="Search users by email"
+        />
+
+      </div>
+
+      <button
+        type="button"
+        class="search-button"
+        (click)="searchUsers()">
+
+        <i class="fa-solid fa-magnifying-glass"></i>
+        Search
+
+      </button>
+
+      @if (appliedEmailSearch()) {
+
+        <button
+          type="button"
+          class="clear-button"
+          (click)="clearSearch()">
+
+          <i class="fa-solid fa-xmark"></i>
+          Clear
+
+        </button>
+
+      }
+
+    </div>
+
+    <!-- Loading -->
+    @if (loading()) {
+
+      <div class="loading-state">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <span>Loading users...</span>
+      </div>
+
+    }
+
+    <!-- Users Table -->
+    @if (!loading()) {
+
+      @if (filteredUsers().length > 0) {
+
+        <div class="table-responsive">
+
+          <table class="users-table">
+
+            <thead>
+              <tr>
+                <th>USER</th>
+                <th>EMAIL ADDRESS</th>
+                <th>ACCOUNT STATUS</th>
+                <th>CURRENT ROLE</th>
+                <th>ASSIGN ROLE</th>
+                <th>ACTION</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              @for (user of filteredUsers(); track user.id) {
+
+                <tr>
+
+                  <!-- User -->
+                  <td>
+
+                    <div class="user-info">
+
+                      <div class="user-avatar">
+                        {{ user.fullName.charAt(0).toUpperCase() }}
+                      </div>
+
+                      <div class="user-name">
+                        <strong>{{ user.fullName }}</strong>
+                        <span>User account</span>
+                      </div>
+
+                    </div>
+
+                  </td>
+
+                  <!-- Email -->
+                  <td>
+                    <span class="email-text">
+                      {{ user.email }}
+                    </span>
+                  </td>
+
+                  <!-- Account Status -->
+                  <td>
+
+                    <span
+                      class="status-badge"
+                      [class.status-active]="user.isActive"
+                      [class.status-inactive]="!user.isActive">
+
+                      <span class="status-dot"></span>
+
+                      {{ user.isActive ? 'Active' : 'Inactive' }}
+
+                    </span>
+
+                  </td>
+
+                  <!-- Current Role -->
+                  <td>
+
+                    <span
+                      class="role-badge"
+                      [ngClass]="getRoleClass(user.role)">
+
+                      {{ getRoleLabel(user.role) }}
+
+                    </span>
+
+                  </td>
+
+                  <!-- Assign Role -->
+                  <td>
+
+                    <select
+                      class="role-select"
+                      [ngModel]="selectedRoles()[user.id] ?? user.role"
+                      (ngModelChange)="changeSelection(user.id, $event)"
+                      [disabled]="!user.isActive || savingUserId() === user.id"
+                      [attr.aria-label]="'Assign role to ' + user.fullName">
+
+                      @for (role of roles(); track role.name) {
+
+                        <option [value]="role.name">
+                          {{ role.displayName }}
+                        </option>
+
+                      }
+
+                    </select>
+
+                  </td>
+
+                  <!-- Actions -->
+                  <td>
+
+                    <div class="action-buttons">
+
+                      <button
+                        type="button"
+                        class="save-button"
+                        [disabled]="
+                          !hasChanged(user) ||
+                          !user.isActive ||
+                          savingUserId() === user.id
+                        "
+                        (click)="saveRole(user)">
+
+                        @if (savingUserId() === user.id) {
+
+                          <i class="fa-solid fa-spinner fa-spin"></i>
+                          Saving
+
+                        } @else {
+
+                          <i class="fa-solid fa-check"></i>
+                          Save
+
+                        }
+
+                      </button>
+
+                      @if (hasChanged(user)) {
+
+                        <button
+                          type="button"
+                          class="cancel-button"
+                          [disabled]="savingUserId() === user.id"
+                          (click)="resetSelection(user)"
+                          title="Cancel changes">
+
+                          <i class="fa-solid fa-xmark"></i>
+
+                        </button>
+
+                      }
+
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      } @else {
+
+        <!-- Empty State -->
+        <div class="empty-state">
+
+          <div class="empty-icon">
+            <i class="fa-solid fa-user-slash"></i>
+          </div>
+
+          <h4>No users found</h4>
+
+          <p>
+            @if (appliedEmailSearch()) {
+              No user found with email containing
+              "{{ appliedEmailSearch() }}".
+            } @else {
+              There are no users available.
+            }
+          </p>
+
+          @if (appliedEmailSearch()) {
+
+            <button
+              type="button"
+              class="clear-button"
+              (click)="clearSearch()">
+
+              Clear Search
+
+            </button>
+
+          }
+
+        </div>
+
+      }
+
+    }
+
+    <!-- Footer -->
+    <div class="table-footer">
+
+      <i class="fa-solid fa-circle-info"></i>
+
+      <span>
+        Role changes take effect after the user signs in again
+        and receives a new authentication token.
+      </span>
+
+    </div>
+
+  </div>
+
+</div>

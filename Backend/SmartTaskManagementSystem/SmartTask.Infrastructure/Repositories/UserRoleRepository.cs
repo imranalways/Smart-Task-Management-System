@@ -34,7 +34,20 @@ public class UserRoleRepository : IUserRoleRepository
             .Where(x => x.UserId == userId)
             .ToListAsync();
     }
+    public async Task ReplaceRoleAsync(Guid userId, Guid roleId)
+    {
+        var existingRoles = await _context.UserRoles
+            .Where(x => x.UserId == userId)
+            .ToListAsync();
 
+        _context.UserRoles.RemoveRange(existingRoles);
+
+        await _context.UserRoles.AddAsync(new UserRole
+        {
+            UserId = userId,
+            RoleId = roleId
+        });
+    }
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();

@@ -9,6 +9,6 @@ public interface IUserRoleRepository
     Task<UserRole?> GetByUserIdAsync(Guid userId);
 
     Task<IEnumerable<UserRole>> GetRolesByUserIdAsync(Guid userId);
-
+    Task ReplaceRoleAsync(Guid userId, Guid roleId);
     Task SaveChangesAsync();
 }

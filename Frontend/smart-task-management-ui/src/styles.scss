@@ -1,1 +1,64 @@
-/* You can add global styles to this file, and also import other style files */
+
+/* Modern typography */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* Font Awesome icons */
+@import '@fortawesome/fontawesome-free/css/all.min.css';
+
+/* Global theme */
+:root {
+  --primary: #5865e9;
+  --primary-dark: #4653d8;
+  --background: #f5f7fb;
+  --surface: #ffffff;
+  --text-primary: #172033;
+  --text-secondary: #718096;
+  --border: #e8edf5;
+  --success: #10b981;
+  --danger: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: 'Inter', sans-serif;
+  background: var(--background);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+p {
+  color: var(--text-secondary);
+}
+
+button {
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+}

@@ -1,8 +1,122 @@
-<div class="layout">
+<div class="app-layout">
+
+  <!-- Sidebar -->
   <aside class="sidebar">
-    <h5>Smart Task</h5>
-    <p class="small mb-3">{{ auth.getUserName() }} ({{ auth.getRole() }})</p>
-    <button class="btn btn-sm btn-outline-light" (click)="logout()">Logout</button>
+
+    <!-- Brand -->
+    <div class="sidebar-brand">
+      <div class="brand-icon">
+        <i class="fa-solid fa-layer-group"></i>
+      </div>
+
+      <div class="brand-text">
+        <h5>Smart Task</h5>
+        <span>Management System</span>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-navigation">
+
+      <span class="nav-section-title">WORKSPACE</span>
+
+      <a
+        routerLink="/dashboard"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="nav-link">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Dashboard</span>
+      </a>
+
+      <a
+        routerLink="/projects"
+        routerLinkActive="active"
+        class="nav-link">
+        <i class="fa-solid fa-folder-open"></i>
+        <span>Projects</span>
+      </a>
+
+      <a
+        routerLink="/tasks"
+        routerLinkActive="active"
+        class="nav-link">
+        <i class="fa-solid fa-list-check"></i>
+        <span>My Tasks</span>
+      </a>
+    @if (auth.getRole() === 'Admin' ||auth.getRole() == 'Project Manager') {
+
+      <span class="nav-section-title management-title">
+        MANAGEMENT
+      </span>
+    @if (auth.getRole() === 'Admin' ||auth.getRole() == 'Project Manager') {
+      <a
+        routerLink="/team"
+        routerLinkActive="active"
+        class="nav-link">
+        <i class="fa-solid fa-users"></i>
+        <span>Team Members</span>
+      </a>
+    }
+      <!-- Admin Only -->
+      @if (auth.getRole() === 'Admin') {
+        <a
+          routerLink="/user-roles"
+          routerLinkActive="active"
+          class="nav-link">
+          <i class="fa-solid fa-user-shield"></i>
+          <span>User Roles</span>
+        </a>
+      }
+    }
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+
+      <div class="sidebar-footer-info">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>Secure Workspace</span>
+      </div>
+
+      <button class="logout-button" (click)="logout()">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Logout</span>
+      </button>
+
+    </div>
+
   </aside>
-  <main class="content"><router-outlet /></main>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- Topbar -->
+    <header class="topbar">
+
+      <div>
+        <span class="topbar-label">SMART TASK WORKSPACE</span>
+        <h6>Task Management</h6>
+      </div>
+
+      <div class="topbar-user">
+        <div class="topbar-avatar">
+          <i class="fa-solid fa-user"></i>
+        </div>
+
+        <div>
+          <strong>{{ auth.getUserName() }}</strong>
+          <span>{{ auth.getRole() }}</span>
+        </div>
+      </div>
+
+    </header>
+
+    <!-- Page Content -->
+    <section class="page-content">
+      <router-outlet></router-outlet>
+    </section>
+
+  </main>
+
 </div>

@@ -1,0 +1,266 @@
+
+<div class="project-details-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+
+    <div class="header-content">
+
+      <a routerLink="/projects" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to Projects
+      </a>
+
+      <span class="eyebrow">PROJECT MANAGEMENT</span>
+
+      <h1>Project Details</h1>
+
+      <p>
+        View project information, timeline and ownership.
+      </p>
+
+    </div>
+
+    @if (project(); as data) {
+      <a
+        [routerLink]="['/projects/edit', data.id]"
+        class="btn-edit">
+        <i class="fa-solid fa-pen"></i>
+        Edit Project
+      </a>
+    }
+
+  </div>
+
+
+  <!-- Loading State -->
+  @if (loading()) {
+
+    <div class="state-card">
+      <i class="fa-solid fa-spinner fa-spin"></i>
+      Loading project details...
+    </div>
+
+  }
+
+  <!-- Error State -->
+  @else if (errorMessage()) {
+
+    <div class="state-card error-state">
+      <i class="fa-solid fa-circle-exclamation"></i>
+
+      <h3>Unable to load project</h3>
+
+      <p>{{ errorMessage() }}</p>
+
+      <a routerLink="/projects" class="btn-back">
+        Return to Projects
+      </a>
+    </div>
+
+  }
+
+  <!-- Project Information -->
+  @else if (project()) {
+
+    <div class="details-card">
+
+      <!-- Project Overview -->
+      <div class="project-overview">
+
+        <div class="project-icon">
+          <i class="fa-solid fa-folder-open"></i>
+        </div>
+
+        <div class="overview-content">
+
+          <span class="eyebrow">PROJECT INFORMATION</span>
+
+          <h2>{{ project()!.name }}</h2>
+
+          <span
+            class="status-badge"
+            [ngClass]="getStatusClass(project()!.status)">
+
+            <span class="status-dot"></span>
+            {{ project()!.status }}
+
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- Description -->
+      <div class="details-section">
+
+        <div class="section-heading">
+          <div class="section-icon">
+            <i class="fa-solid fa-align-left"></i>
+          </div>
+
+          <div>
+            <h3>Project Description</h3>
+            <p>Overview and objectives of this project.</p>
+          </div>
+        </div>
+
+        <p class="description">
+          {{ project()!.description || 'No description provided.' }}
+        </p>
+
+      </div>
+
+
+      <!-- Project Timeline -->
+      <div class="details-section">
+
+        <div class="section-heading">
+          <div class="section-icon">
+            <i class="fa-solid fa-calendar-days"></i>
+          </div>
+
+          <div>
+            <h3>Project Timeline</h3>
+            <p>Project schedule and duration.</p>
+          </div>
+        </div>
+
+        <div class="timeline-grid">
+
+          <div class="timeline-item">
+
+            <div class="timeline-icon start-icon">
+              <i class="fa-solid fa-play"></i>
+            </div>
+
+            <div>
+              <span class="detail-label">START DATE</span>
+
+              <strong>
+                {{ project()!.startDate | date:'MMM d, yyyy' }}
+              </strong>
+            </div>
+
+          </div>
+
+
+          <div class="timeline-item">
+
+            <div class="timeline-icon end-icon">
+              <i class="fa-solid fa-flag-checkered"></i>
+            </div>
+
+            <div>
+              <span class="detail-label">END DATE</span>
+
+              <strong>
+                {{ project()!.endDate | date:'MMM d, yyyy' }}
+              </strong>
+            </div>
+
+          </div>
+
+
+          <div class="timeline-item">
+
+            <div class="timeline-icon duration-icon">
+              <i class="fa-solid fa-clock"></i>
+            </div>
+
+            <div>
+              <span class="detail-label">PROJECT DURATION</span>
+
+              <strong>
+                {{ getProjectDuration(
+                  project()!.startDate,
+                  project()!.endDate
+                ) }} days
+              </strong>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- Project Ownership -->
+      <div class="details-section">
+
+        <div class="section-heading">
+          <div class="section-icon">
+            <i class="fa-solid fa-user"></i>
+          </div>
+
+          <div>
+            <h3>Project Ownership</h3>
+            <p>Information about the project creator.</p>
+          </div>
+        </div>
+
+        <div class="creator-card">
+
+          <div class="creator-avatar">
+            <i class="fa-solid fa-user"></i>
+          </div>
+
+          <div class="creator-info">
+            <span class="detail-label">CREATED BY</span>
+
+            <strong>
+              {{ project()!.createdByName || 'Unknown' }}
+            </strong>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- Project Metadata -->
+      <div class="metadata-section">
+
+        <div>
+          <span class="detail-label">PROJECT ID</span>
+
+          <strong class="project-id">
+            {{ project()!.id }}
+          </strong>
+        </div>
+
+        <div>
+          <span class="detail-label">CREATOR ID</span>
+
+          <strong class="project-id">
+            {{ project()!.createdBy }}
+          </strong>
+        </div>
+
+      </div>
+
+
+      <!-- Footer Actions -->
+      <div class="details-footer">
+
+        <a routerLink="/projects" class="btn-cancel">
+          <i class="fa-solid fa-arrow-left"></i>
+          Back to Projects
+        </a>
+
+        <a
+          [routerLink]="['/projects/edit', project()!.id]"
+          class="btn-save">
+          <i class="fa-solid fa-pen-to-square"></i>
+          Edit Project
+        </a>
+
+      </div>
+
+    </div>
+
+  }
+
+</div>

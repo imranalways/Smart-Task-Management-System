@@ -1,103 +1,265 @@
+
 <div class="auth-page">
 
-  <section class="brand-panel d-none d-lg-flex">
-    <div class="brand-content">
-      <div class="brand-logo">
-        <i class="fa-solid fa-list-check"></i>
-      </div>
-      <h1>Smart Task Management</h1>
-      <p>Plan projects, track tasks, and let AI sharpen your task descriptions.</p>
-
-      <ul class="feature-list">
-        <li><i class="fa-solid fa-circle-check"></i> Project and task tracking</li>
-        <li><i class="fa-solid fa-circle-check"></i> Role-based access control</li>
-        <li><i class="fa-solid fa-circle-check"></i> Live dashboard insights</li>
-      </ul>
+  <!-- LEFT BRANDING PANEL -->
+  <section class="brand-panel">
+    <div class="brand-background">
+      <div class="glow glow-one"></div>
+      <div class="glow glow-two"></div>
+      <div class="grid-pattern"></div>
     </div>
-  </section>
 
-  <section class="form-panel">
-    <div class="form-card">
+    <div class="brand-content">
 
-      <div class="text-center d-lg-none mb-3">
-        <div class="brand-logo small-logo">
-          <i class="fa-solid fa-list-check"></i>
+      <div class="brand-header">
+        <div class="brand-icon">
+          <i class="fa-solid fa-layer-group"></i>
+        </div>
+        <span>TaskFlow</span>
+      </div>
+
+      <div class="hero-content">
+        <div class="eyebrow">
+          <span class="pulse-dot"></span>
+          YOUR WORKSPACE, REIMAGINED
+        </div>
+
+        <h1>
+          Work smarter.<br>
+          <span>Achieve more.</span>
+        </h1>
+
+        <p class="hero-description">
+          Bring your projects, people, and priorities together.
+          Stay organized, collaborate effortlessly, and turn
+          your plans into meaningful progress.
+        </p>
+
+        <div class="feature-list">
+
+          <div class="feature-item">
+            <div class="feature-icon">
+              <i class="fa-solid fa-list-check"></i>
+            </div>
+            <div>
+              <h6>Organized task management</h6>
+              <p>Keep every task moving forward.</p>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">
+              <i class="fa-solid fa-people-group"></i>
+            </div>
+            <div>
+              <h6>Seamless collaboration</h6>
+              <p>Bring your team together.</p>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+            <div>
+              <h6>AI-powered productivity</h6>
+              <p>Make your workflow more efficient.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Decorative task card -->
+        <div class="floating-card">
+          <div class="floating-card-top">
+            <div class="task-avatar">
+              <i class="fa-solid fa-check"></i>
+            </div>
+            <span>PROJECT PROGRESS</span>
+            <i class="fa-solid fa-ellipsis"></i>
+          </div>
+
+          <div class="progress-heading">
+            <strong>Website Redesign</strong>
+            <span>75%</span>
+          </div>
+
+          <div class="progress-track">
+            <div class="progress-fill"></div>
+          </div>
+
+          <div class="progress-footer">
+            <span><i class="fa-solid fa-circle-check"></i> 18 tasks completed</span>
+            <span>6 remaining</span>
+          </div>
         </div>
       </div>
 
-      <h2 class="mb-1">Welcome back</h2>
-      <p class="text-muted mb-4">Sign in to continue to your workspace.</p>
+      <div class="brand-footer">
+        <span>© 2026 TaskFlow</span>
+        <span>Designed for better teamwork.</span>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- RIGHT LOGIN PANEL -->
+  <section class="form-panel">
+
+    <div class="form-container">
+
+      <div class="mobile-brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-layer-group"></i>
+        </div>
+        <span>TaskFlow</span>
+      </div>
+
+      <div class="form-heading">
+        <div class="welcome-label">
+          <span class="welcome-line"></span>
+          WELCOME BACK
+        </div>
+
+        <h2>Sign in to your<br>workspace<span>.</span></h2>
+
+        <p>Enter your details to access your account.</p>
+      </div>
+
 
       @if (errorMessage(); as msg) {
-        <div class="alert alert-danger d-flex align-items-center py-2" role="alert">
-          <i class="fa-solid fa-triangle-exclamation me-2"></i>
+        <div class="error-banner" role="alert">
+          <i class="fa-solid fa-circle-exclamation"></i>
           <span>{{ msg }}</span>
         </div>
       }
 
+
       <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
 
-        <div class="mb-3">
-          <label class="form-label" for="email">Email</label>
-          <div class="input-group">
-            <span class="input-group-text"><i class="fa-regular fa-envelope"></i></span>
+        <!-- EMAIL -->
+        <div class="form-field">
+
+          <label for="email">Email address</label>
+
+          <div class="input-wrapper"
+               [class.input-invalid]="email.invalid && email.touched">
+
+            <i class="fa-regular fa-envelope input-icon"></i>
+
             <input
               id="email"
               type="email"
-              class="form-control"
-              placeholder="you@company.com"
+              placeholder="name@company.com"
               autocomplete="username"
               formControlName="email"
-              [class.is-invalid]="email.invalid && email.touched">
+              [class.invalid-text]="email.invalid && email.touched">
+
+            @if (email.valid && email.touched) {
+              <i class="fa-solid fa-circle-check valid-icon"></i>
+            }
+
           </div>
+
           @if (email.touched && email.errors) {
             <div class="field-error">
-              {{ email.errors['required'] ? 'Email is required.' : 'Enter a valid email address.' }}
+              <i class="fa-solid fa-circle-exclamation"></i>
+              {{ email.errors['required']
+                ? 'Email address is required.'
+                : 'Please enter a valid email address.' }}
             </div>
           }
+
         </div>
 
-        <div class="mb-4">
-          <label class="form-label" for="password">Password</label>
-          <div class="input-group">
-            <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
+
+        <!-- PASSWORD -->
+        <div class="form-field">
+
+          <div class="label-row">
+            <label for="password">Password</label>
+          </div>
+
+          <div class="input-wrapper"
+               [class.input-invalid]="password.invalid && password.touched">
+
+            <i class="fa-solid fa-lock input-icon"></i>
+
             <input
               id="password"
-              class="form-control"
+              [type]="showPassword() ? 'text' : 'password'"
               placeholder="Enter your password"
               autocomplete="current-password"
-              formControlName="password"
-              [type]="showPassword() ? 'text' : 'password'"
-              [class.is-invalid]="password.invalid && password.touched">
+              formControlName="password">
+
             <button
               type="button"
-              class="btn btn-outline-secondary"
-              aria-label="Toggle password visibility"
-              (click)="showPassword.set(!showPassword())">
-              <i class="fa-solid" [class.fa-eye]="!showPassword()" [class.fa-eye-slash]="showPassword()"></i>
+              class="password-toggle"
+              (click)="showPassword.set(!showPassword())"
+              [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'">
+
+              <i class="fa-regular"
+                 [class.fa-eye]="!showPassword()"
+                 [class.fa-eye-slash]="showPassword()">
+              </i>
+
             </button>
+
           </div>
+
           @if (password.touched && password.errors) {
-            <div class="field-error">Password is required.</div>
+            <div class="field-error">
+              <i class="fa-solid fa-circle-exclamation"></i>
+              Password is required.
+            </div>
           }
+
         </div>
 
-        <button type="submit" class="btn btn-primary btn-lg w-100" [disabled]="loading()">
+
+        <!-- SUBMIT -->
+        <button
+          type="submit"
+          class="login-button"
+          [disabled]="loading()">
+
           @if (loading()) {
-            <span class="spinner-border spinner-border-sm me-2"></span>Signing in...
+            <span class="spinner-border spinner-border-sm"></span>
+            <span>Signing you in...</span>
           } @else {
-            Sign in
+            <span>Sign in to your account</span>
+            <i class="fa-solid fa-arrow-right"></i>
           }
+
         </button>
 
       </form>
 
-      <p class="text-center text-muted mt-4 mb-0">
-        Don't have an account?
-        <a routerLink="/auth/register">Create one</a>
-      </p>
+
+      <div class="divider">
+        <span></span>
+        <p>YOUR PRODUCTIVITY STARTS HERE</p>
+        <span></span>
+      </div>
+
+
+      <div class="register-section">
+        <p>New to TaskFlow?</p>
+        <a routerLink="/auth/register">
+          Create an account
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        </a>
+      </div>
+
+
+      <div class="security-note">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>Your workspace is protected with secure authentication.</span>
+      </div>
 
     </div>
+
   </section>
 
 </div>

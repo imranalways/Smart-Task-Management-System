@@ -1,1 +1,150 @@
-<p>task-details works!</p>
+
+<div class="task-details-page">
+
+  <div class="page-header">
+    <div>
+      <span class="eyebrow">WORKSPACE / TASKS</span>
+      <h1>Task Details</h1>
+      <p>View task information and manage its status.</p>
+    </div>
+
+    <a routerLink="/tasks" class="btn-back">
+      <i class="fa-solid fa-arrow-left"></i>
+      Back to Tasks
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="state-card">
+      <i class="fa-solid fa-spinner fa-spin"></i>
+      Loading task details...
+    </div>
+  } @else if (task()) {
+
+    @if (errorMessage()) {
+      <div class="alert alert-danger">{{ errorMessage() }}</div>
+    }
+
+    @if (successMessage()) {
+      <div class="alert alert-success">{{ successMessage() }}</div>
+    }
+
+    <div class="details-card">
+
+      <div class="details-header">
+        <div class="task-heading">
+          <div class="task-icon">
+            <i class="fa-solid fa-list-check"></i>
+          </div>
+
+          <div>
+            <span class="eyebrow">TASK INFORMATION</span>
+            <h2>{{ task()!.title }}</h2>
+          </div>
+        </div>
+
+        <a
+          [routerLink]="['/tasks/edit', task()!.id]"
+          class="btn-edit">
+          <i class="fa-solid fa-pen"></i>
+          Edit Task
+        </a>
+      </div>
+
+      <div class="details-section">
+        <h3>Description</h3>
+        <p class="description">{{ task()!.description }}</p>
+      </div>
+
+      <div class="details-grid">
+
+        <div class="detail-item">
+          <span class="detail-label">STATUS</span>
+          <span
+            class="status-badge"
+            [ngClass]="getStatusClass(task()!.status)">
+            {{ formatStatus(task()!.status) }}
+          </span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">PRIORITY</span>
+          <span
+            class="priority-badge"
+            [ngClass]="getPriorityClass(task()!.priority)">
+            {{ task()!.priority }}
+          </span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">DUE DATE</span>
+          <strong>{{ task()!.dueDate | date:'MMM d, yyyy' }}</strong>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">ASSIGNED TO</span>
+          <strong>{{ task()!.assignedToUserName || 'Unassigned' }}</strong>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">PROJECT ID</span>
+          <strong class="project-id">{{ task()!.projectId }}</strong>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">TASK ID</span>
+          <strong class="project-id">{{ task()!.id }}</strong>
+        </div>
+
+      </div>
+
+      <div class="status-section">
+        <div>
+          <h3>Update Task Status</h3>
+          <p>Change the current progress of this task.</p>
+        </div>
+
+        <div class="status-controls">
+          <select
+            [(ngModel)]="selectedStatus"
+            [ngModelOptions]="{standalone: true}">
+
+            @for (status of statuses; track status.value) {
+              <option [ngValue]="status.value">
+                {{ status.label }}
+              </option>
+            }
+
+          </select>
+
+          <button
+            type="button"
+            class="btn-update"
+            [disabled]="
+              savingStatus() ||
+              selectedStatus === getStatusValue(task()!.status)
+            "
+            (click)="updateStatus()">
+
+            @if (savingStatus()) {
+              <i class="fa-solid fa-spinner fa-spin"></i>
+              Updating...
+            } @else {
+              Update Status
+            }
+
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  } @else {
+    <div class="state-card">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      Task could not be found.
+      <a routerLink="/tasks">Return to Tasks</a>
+    </div>
+  }
+
+</div>

@@ -1,1 +1,364 @@
-<p>register works!</p>
+
+<div class="auth-page">
+
+  <!-- Left Brand Panel -->
+  <section class="brand-panel d-none d-lg-flex">
+
+    <div class="brand-content">
+
+      <div class="brand-logo">
+        <i class="fa-solid fa-list-check"></i>
+      </div>
+
+      <span class="brand-eyebrow">SMART TASK WORKSPACE</span>
+
+      <h1>Build better workflows. Together.</h1>
+
+      <p>
+        Create your account and bring your projects, tasks,
+        and team collaboration into one organized workspace.
+      </p>
+
+      <ul class="feature-list">
+        <li>
+          <i class="fa-solid fa-circle-check"></i>
+          Organize projects and tasks
+        </li>
+
+        <li>
+          <i class="fa-solid fa-circle-check"></i>
+          Track progress and deadlines
+        </li>
+
+        <li>
+          <i class="fa-solid fa-circle-check"></i>
+          Collaborate with your team
+        </li>
+
+        <li>
+          <i class="fa-solid fa-circle-check"></i>
+          Improve task descriptions with AI
+        </li>
+      </ul>
+
+      <div class="brand-footer">
+        <i class="fa-solid fa-shield-halved"></i>
+        Secure workspace for productive teams
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- Registration Form Panel -->
+  <section class="form-panel">
+
+    <div class="form-card">
+
+      <!-- Mobile Logo -->
+      <div class="mobile-brand d-lg-none">
+        <div class="brand-logo small-logo">
+          <i class="fa-solid fa-list-check"></i>
+        </div>
+
+        <span>SMART TASK MANAGEMENT</span>
+      </div>
+
+
+      <!-- Success State -->
+      @if (registrationSuccess()) {
+
+        <div class="success-state">
+
+          <div class="success-icon">
+            <i class="fa-solid fa-check"></i>
+          </div>
+
+          <h2>Account created!</h2>
+
+          <p>
+            {{ successMessage() }}
+          </p>
+
+          <p class="success-description">
+            Your account is ready. Sign in to access your
+            Smart Task Management workspace.
+          </p>
+
+          <a routerLink="/auth/login" class="btn-primary">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i>
+            Continue to Sign In
+          </a>
+
+        </div>
+
+      } @else {
+
+        <!-- Form Header -->
+        <div class="form-header">
+
+          <span class="form-eyebrow">GET STARTED</span>
+
+          <h2>Create your account</h2>
+
+          <p>
+            Join your workspace and start managing tasks smarter.
+          </p>
+
+        </div>
+
+
+        <!-- Error Message -->
+        @if (errorMessage(); as message) {
+          <div class="alert alert-danger" role="alert">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>{{ message }}</span>
+          </div>
+        }
+
+
+        <!-- Registration Form -->
+        <form
+          [formGroup]="form"
+          (ngSubmit)="submit()"
+          novalidate>
+
+          <!-- Name Fields -->
+          <div class="name-grid">
+
+            <div class="form-group">
+
+              <label for="firstName">First Name</label>
+
+              <div class="input-wrapper">
+                <i class="fa-regular fa-user"></i>
+
+                <input
+                  id="firstName"
+                  type="text"
+                  placeholder="John"
+                  autocomplete="given-name"
+                  formControlName="firstName"
+                  [class.invalid]="firstName.invalid && firstName.touched">
+              </div>
+
+              @if (firstName.touched && firstName.errors) {
+                <div class="field-error">
+                  @if (firstName.errors['required']) {
+                    First name is required.
+                  } @else {
+                    First name cannot exceed 100 characters.
+                  }
+                </div>
+              }
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label for="lastName">Last Name</label>
+
+              <div class="input-wrapper">
+                <i class="fa-regular fa-user"></i>
+
+                <input
+                  id="lastName"
+                  type="text"
+                  placeholder="Doe"
+                  autocomplete="family-name"
+                  formControlName="lastName"
+                  [class.invalid]="lastName.invalid && lastName.touched">
+              </div>
+
+              @if (lastName.touched && lastName.errors) {
+                <div class="field-error">
+                  @if (lastName.errors['required']) {
+                    Last name is required.
+                  } @else {
+                    Last name cannot exceed 100 characters.
+                  }
+                </div>
+              }
+
+            </div>
+
+          </div>
+
+
+          <!-- Email -->
+          <div class="form-group">
+
+            <label for="email">Email Address</label>
+
+            <div class="input-wrapper">
+              <i class="fa-regular fa-envelope"></i>
+
+              <input
+                id="email"
+                type="email"
+                placeholder="you@company.com"
+                autocomplete="email"
+                formControlName="email"
+                [class.invalid]="email.invalid && email.touched">
+            </div>
+
+            @if (email.touched && email.errors) {
+              <div class="field-error">
+                {{
+                  email.errors['required']
+                    ? 'Email address is required.'
+                    : 'Please enter a valid email address.'
+                }}
+              </div>
+            }
+
+          </div>
+
+
+          <!-- Password -->
+          <div class="form-group">
+
+            <label for="password">Password</label>
+
+            <div class="input-wrapper">
+              <i class="fa-solid fa-lock"></i>
+
+              <input
+                id="password"
+                [type]="showPassword() ? 'text' : 'password'"
+                placeholder="Create a password"
+                autocomplete="new-password"
+                formControlName="password"
+                [class.invalid]="password.invalid && password.touched">
+
+              <button
+                type="button"
+                class="password-toggle"
+                aria-label="Toggle password visibility"
+                (click)="showPassword.set(!showPassword())">
+
+                <i
+                  class="fa-solid"
+                  [class.fa-eye]="!showPassword()"
+                  [class.fa-eye-slash]="showPassword()">
+                </i>
+
+              </button>
+            </div>
+
+            @if (password.touched && password.errors) {
+              <div class="field-error">
+                @if (password.errors['required']) {
+                  Password is required.
+                } @else {
+                  Password must contain at least 8 characters.
+                }
+              </div>
+            }
+
+            <span class="field-hint">
+              Use at least 8 characters.
+            </span>
+
+          </div>
+
+
+          <!-- Confirm Password -->
+          <div class="form-group">
+
+            <label for="confirmPassword">Confirm Password</label>
+
+            <div class="input-wrapper">
+              <i class="fa-solid fa-shield-halved"></i>
+
+              <input
+                id="confirmPassword"
+                [type]="showConfirmPassword() ? 'text' : 'password'"
+                placeholder="Re-enter your password"
+                autocomplete="new-password"
+                formControlName="confirmPassword"
+                [class.invalid]="
+                  (confirmPassword.invalid && confirmPassword.touched)
+                  || passwordMismatch
+                ">
+
+              <button
+                type="button"
+                class="password-toggle"
+                aria-label="Toggle confirm password visibility"
+                (click)="showConfirmPassword.set(!showConfirmPassword())">
+
+                <i
+                  class="fa-solid"
+                  [class.fa-eye]="!showConfirmPassword()"
+                  [class.fa-eye-slash]="showConfirmPassword()">
+                </i>
+
+              </button>
+            </div>
+
+            @if (confirmPassword.touched && confirmPassword.errors) {
+              <div class="field-error">
+                Confirm password is required.
+              </div>
+            } @else if (passwordMismatch) {
+              <div class="field-error">
+                Passwords do not match.
+              </div>
+            }
+
+          </div>
+
+
+          <!-- Role Information -->
+          <div class="role-information">
+            <div class="role-icon">
+              <i class="fa-solid fa-user-check"></i>
+            </div>
+
+            <div>
+              <strong>Default Account Role</strong>
+              <span>Team Member</span>
+            </div>
+          </div>
+
+
+          <!-- Submit -->
+          <button
+            type="submit"
+            class="btn-primary submit-button"
+            [disabled]="loading()">
+
+            @if (loading()) {
+              <span class="spinner-border spinner-border-sm"></span>
+              Creating Account...
+            } @else {
+              Create Account
+              <i class="fa-solid fa-arrow-right"></i>
+            }
+
+          </button>
+
+        </form>
+
+
+        <!-- Login Link -->
+        <p class="login-link">
+          Already have an account?
+          <a routerLink="/auth/login">Sign in</a>
+        </p>
+
+        <div class="security-note">
+          <i class="fa-solid fa-lock"></i>
+          Your account information is securely protected.
+        </div>
+
+      }
+
+    </div>
+
+  </section>
+
+</div>

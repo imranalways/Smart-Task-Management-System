@@ -1,1 +1,160 @@
-<p>project-create works!</p>
+
+<div class="project-create-page">
+
+  <div class="page-header">
+    <div>
+      <a routerLink="/projects" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to Projects
+      </a>
+
+      <span class="eyebrow">PROJECT MANAGEMENT</span>
+      <h1>Create New Project</h1>
+      <p>Set up a project, define its scope, and establish its timeline.</p>
+    </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="project-form">
+
+    <div class="form-card">
+
+      <div class="card-heading">
+        <div class="heading-icon">
+          <i class="fa-solid fa-folder-plus"></i>
+        </div>
+
+        <div>
+          <h2>Project Information</h2>
+          <p>Enter the basic information about your new project.</p>
+        </div>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="alert alert-danger">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <div class="form-fields">
+
+        <div class="form-group full-width">
+          <label for="name">
+            Project Name <span class="required">*</span>
+          </label>
+
+          <input
+            id="name"
+            type="text"
+            formControlName="name"
+            placeholder="e.g. Smart Task Management System"
+            maxlength="100"
+            [class.invalid]="form.controls.name.invalid && form.controls.name.touched"
+          />
+
+          @if (form.controls.name.invalid && form.controls.name.touched) {
+            <small class="validation-message">
+              Project name is required and must contain at least 3 characters.
+            </small>
+          }
+        </div>
+
+        <div class="form-group full-width">
+          <label for="description">
+            Project Description <span class="required">*</span>
+          </label>
+
+          <textarea
+            id="description"
+            formControlName="description"
+            rows="5"
+            maxlength="1000"
+            placeholder="Describe the purpose, objectives, and scope of this project..."
+            [class.invalid]="form.controls.description.invalid && form.controls.description.touched"
+          ></textarea>
+
+          <div class="field-footer">
+            <span>Provide a clear overview of the project.</span>
+            <span>{{ form.controls.description.value.length }}/1000</span>
+          </div>
+
+          @if (form.controls.description.invalid && form.controls.description.touched) {
+            <small class="validation-message">
+              Description is required and must contain at least 10 characters.
+            </small>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="startDate">
+            Start Date <span class="required">*</span>
+          </label>
+
+          <div class="input-with-icon">
+            <i class="fa-regular fa-calendar"></i>
+            <input
+              id="startDate"
+              type="date"
+              formControlName="startDate"
+              [class.invalid]="form.controls.startDate.invalid && form.controls.startDate.touched"
+            />
+          </div>
+
+          @if (form.controls.startDate.invalid && form.controls.startDate.touched) {
+            <small class="validation-message">
+              Please select a start date.
+            </small>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="endDate">
+            End Date <span class="required">*</span>
+          </label>
+
+          <div class="input-with-icon">
+            <i class="fa-regular fa-calendar-check"></i>
+            <input
+              id="endDate"
+              type="date"
+              formControlName="endDate"
+              [min]="form.controls.startDate.value"
+              [class.invalid]="form.controls.endDate.invalid && form.controls.endDate.touched"
+            />
+          </div>
+
+          @if (form.controls.endDate.invalid && form.controls.endDate.touched) {
+            <small class="validation-message">
+              Please select an end date.
+            </small>
+          }
+        </div>
+
+      </div>
+
+      <div class="form-footer">
+        <a routerLink="/projects" class="btn-cancel">
+          Cancel
+        </a>
+
+        <button
+          type="submit"
+          class="btn-create"
+          [disabled]="loading()">
+
+          @if (loading()) {
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            Creating...
+          } @else {
+            <i class="fa-solid fa-plus"></i>
+            Create Project
+          }
+
+        </button>
+      </div>
+
+    </div>
+
+  </form>
+
+</div>

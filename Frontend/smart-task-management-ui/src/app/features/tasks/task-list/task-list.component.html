@@ -1,1 +1,236 @@
-<p>task-list works!</p>
+
+<div class="task-page">
+
+  <div class="page-header">
+    <div>
+      <span class="eyebrow">WORKSPACE</span>
+      <h1>My Tasks</h1>
+      <p>Manage, organize and track your team's tasks.</p>
+    </div>
+
+    <a routerLink="/tasks/create" class="btn-create">
+      <i class="fa-solid fa-plus"></i>
+      Create Task
+    </a>
+  </div>
+
+  <div class="summary-card">
+    <div class="summary-icon">
+      <i class="fa-solid fa-list-check"></i>
+    </div>
+    <div>
+      <span>Total Tasks</span>
+      <h2>{{ totalRecords() }}</h2>
+    </div>
+  </div>
+
+  <section class="task-card">
+
+    <div class="card-header">
+      <div>
+        <h3>All Tasks</h3>
+        <p>View and manage your tasks.</p>
+      </div>
+
+      <button class="btn-refresh" type="button" (click)="loadTasks()">
+        <i class="fa-solid fa-rotate-right"></i>
+        Refresh
+      </button>
+    </div>
+
+    <div class="toolbar">
+      <form class="search-form" (ngSubmit)="search()">
+        <input
+          type="text"
+          name="searchTerm"
+          [(ngModel)]="searchTerm"
+          placeholder="Search tasks by title or description..."
+        />
+
+        <button type="submit" class="btn-search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          Search
+        </button>
+
+        @if (appliedSearch) {
+          <button
+            type="button"
+            class="btn-clear"
+            (click)="clearSearch()">
+            Clear
+          </button>
+        }
+      </form>
+
+      <div class="page-size">
+        <label for="pageSize">Show</label>
+        <select
+          id="pageSize"
+          [ngModel]="pageSize"
+          [ngModelOptions]="{standalone: true}"
+          (ngModelChange)="changePageSize(+$event)">
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="20">20</option>
+          <option [ngValue]="50">50</option>
+        </select>
+      </div>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="error-message">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        {{ errorMessage() }}
+        <button type="button" (click)="loadTasks()">Retry</button>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="loading-state">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <span>Loading tasks...</span>
+      </div>
+    } @else if (tasks().length > 0) {
+
+      <div class="table-responsive">
+        <table class="task-table">
+          <thead>
+            <tr>
+              <th>
+                <button type="button" (click)="changeSort('title')">
+                  TASK
+                  <i class="fa-solid fa-sort"></i>
+                </button>
+              </th>
+              <th>STATUS</th>
+              <th>PRIORITY</th>
+              <th>ASSIGNED TO</th>
+              <th>
+                <button type="button" (click)="changeSort('dueDate')">
+                  DUE DATE
+                  <i class="fa-solid fa-sort"></i>
+                </button>
+              </th>
+              <th class="text-center">ACTIONS</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (task of tasks(); track task.id) {
+              <tr>
+                <td>
+                  <div class="task-name">
+                    <div class="task-icon">
+                      <i class="fa-solid fa-list-check"></i>
+                    </div>
+                    <div>
+                      <strong>{{ task.title }}</strong>
+                      <small>{{ task.description }}</small>
+                    </div>
+                  </div>
+                </td>
+
+                <td>
+                  <span class="status-badge" [ngClass]="getStatusClass(task.status)">
+                    {{ formatStatus(task.status) }}
+                  </span>
+                </td>
+
+                <td>
+                  <span class="priority-badge" [ngClass]="getPriorityClass(task.priority)">
+                    {{ task.priority }}
+                  </span>
+                </td>
+
+                <td>
+                  {{ task.assignedToUserName || 'Unassigned' }}
+                </td>
+
+                <td>
+                  {{ task.dueDate | date:'MMM d, yyyy' }}
+                </td>
+
+                <td>
+                  <div class="actions">
+                    <a
+                      class="action-btn view-btn"
+                      [routerLink]="['/tasks/details', task.id]"
+                      title="View task">
+                      <i class="fa-solid fa-eye"></i>
+                    </a>
+
+                    <a
+                      class="action-btn edit-btn"
+                      [routerLink]="['/tasks/edit', task.id]"
+                      title="Edit task">
+                      <i class="fa-solid fa-pen"></i>
+                    </a>
+
+                    <button
+                      type="button"
+                      class="action-btn delete-btn"
+                      title="Delete task"
+                      (click)="deleteTask(task)">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-footer">
+        <span>
+          Showing <strong>{{ pageStart }} - {{ pageEnd }}</strong>
+          of <strong>{{ totalRecords() }}</strong> tasks
+        </span>
+
+        <div class="pagination">
+          <button
+            type="button"
+            [disabled]="pageNumber === 1"
+            (click)="changePage(pageNumber - 1)">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+
+          @for (page of pages; track page) {
+            <button
+              type="button"
+              [class.active]="page === pageNumber"
+              (click)="changePage(page)">
+              {{ page }}
+            </button>
+          }
+
+          <button
+            type="button"
+            [disabled]="pageNumber >= totalPages()"
+            (click)="changePage(pageNumber + 1)">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+    } @else if (!errorMessage()) {
+      <div class="empty-state">
+        <div class="empty-icon">
+          <i class="fa-solid fa-clipboard-list"></i>
+        </div>
+        <h3>No tasks found</h3>
+        <p>
+          @if (appliedSearch) {
+            Try a different search term.
+          } @else {
+            Start by creating your first task.
+          }
+        </p>
+        <a routerLink="/tasks/create" class="btn-create">
+          <i class="fa-solid fa-plus"></i>
+          Create Task
+        </a>
+      </div>
+    }
+
+  </section>
+</div>

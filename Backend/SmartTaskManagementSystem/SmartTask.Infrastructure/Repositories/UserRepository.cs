@@ -37,7 +37,15 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(
                 x => x.Id == id);
     }
-
+    public async Task<List<User>> GetAllAsync()
+    {
+        return await _context.Users
+            .Include(x => x.UserRoles)
+            .ThenInclude(x => x.Role)
+            .OrderBy(x => x.FirstName)
+            .ThenBy(x => x.LastName)
+            .ToListAsync();
+    }
     public async Task<bool> ExistsAsync(
         string email)
     {

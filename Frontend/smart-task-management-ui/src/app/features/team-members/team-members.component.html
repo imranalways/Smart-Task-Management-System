@@ -1,0 +1,216 @@
+
+<div class="team-page">
+
+  <div class="page-header">
+    <div>
+      <span class="eyebrow">WORKSPACE / MANAGEMENT</span>
+      <h1>Team Members</h1>
+      <p>Manage project members and collaborate with your team.</p>
+    </div>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="alert alert-error">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      {{ errorMessage() }}
+    </div>
+  }
+
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <i class="fa-solid fa-circle-check"></i>
+      {{ successMessage() }}
+    </div>
+  }
+
+  <div class="team-toolbar">
+
+    <div class="project-selector">
+      <label for="projectSelect">Select Project</label>
+
+      <select
+        id="projectSelect"
+        [(ngModel)]="selectedProjectId"
+        (ngModelChange)="onProjectChange()">
+
+        <option value="" disabled>Select a project</option>
+
+        @for (project of projects(); track project.id) {
+          <option [value]="project.id">
+            {{ project.name }}
+          </option>
+        }
+
+      </select>
+    </div>
+
+    <div class="member-count">
+      <span class="count-icon">
+        <i class="fa-solid fa-users"></i>
+      </span>
+
+      <div>
+        <strong>{{ members().length }}</strong>
+        <span>Project Members</span>
+      </div>
+    </div>
+
+  </div>
+
+
+  <div class="add-member-card">
+
+    <div class="card-heading">
+      <div class="heading-icon">
+        <i class="fa-solid fa-user-plus"></i>
+      </div>
+
+      <div>
+        <h3>Add Team Member</h3>
+        <p>Invite an existing user to collaborate on this project.</p>
+      </div>
+    </div>
+
+    <div class="add-member-form">
+
+      <div class="form-group">
+        <label for="userSelect">Select User</label>
+
+        <select
+          id="userSelect"
+          [(ngModel)]="selectedUserId">
+
+          <option value="">Choose a team member</option>
+
+          @for (user of filteredUsers; track user.id) {
+            <option [value]="user.id">
+              {{ user.fullName }} ({{ user.email }}) - {{ user.role }}
+            </option>
+          }
+
+        </select>
+      </div>
+
+      <button
+        type="button"
+        class="btn-add"
+        [disabled]="saving() || !selectedUserId || !selectedProjectId"
+        (click)="addMember()">
+
+        @if (saving()) {
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          Adding...
+        } @else {
+          <i class="fa-solid fa-plus"></i>
+          Add Member
+        }
+
+      </button>
+
+    </div>
+
+    @if (selectedProjectId && filteredUsers.length === 0) {
+      <p class="helper-text">
+        All available users are already assigned to this project.
+      </p>
+    }
+
+  </div>
+
+
+  <div class="members-card">
+
+    <div class="members-header">
+      <div>
+        <h3>Project Team</h3>
+        <p>People currently assigned to this project.</p>
+      </div>
+
+      <button
+        type="button"
+        class="btn-refresh"
+        (click)="loadMembers()">
+        <i class="fa-solid fa-rotate"></i>
+        Refresh
+      </button>
+    </div>
+
+    @if (loading()) {
+
+      <div class="empty-state">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        Loading team members...
+      </div>
+
+    } @else if (members().length > 0) {
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>MEMBER</th>
+              <th>EMAIL</th>
+              <th>ROLE</th>
+              <th>JOINED DATE</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (member of members(); track trackByUserId($index, member)) {
+              <tr>
+
+                <td>
+                  <div class="member-profile">
+                    <div class="avatar">
+                      {{ getInitials(member.fullName) }}
+                    </div>
+
+                    <strong>{{ member.fullName }}</strong>
+                  </div>
+                </td>
+
+                <td>{{ member.email }}</td>
+
+                <td>
+                  <span class="role-badge">
+                    {{ member.role }}
+                  </span>
+                </td>
+
+                <td>
+                  {{ member.joinedAt | date:'MMM d, yyyy' }}
+                </td>
+
+                <td>
+                  <button
+                    type="button"
+                    class="btn-remove"
+                    title="Remove member"
+                    (click)="removeMember(member)">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </td>
+
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+    } @else {
+
+      <div class="empty-state">
+        <div class="empty-icon">
+          <i class="fa-solid fa-users"></i>
+        </div>
+
+        <h3>No team members yet</h3>
+        <p>Add users to this project to start collaborating.</p>
+      </div>
+
+    }
+
+  </div>
+
+</div>
