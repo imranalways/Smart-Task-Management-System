@@ -24,23 +24,51 @@ export class TaskService {
   private readonly apiUrl = `${environment.apiUrl}/tasks`;
 
   getTasks(query: TaskQuery): Observable<PagedResponse<Task>> {
-    let params = new HttpParams()
-      .set('pageNumber', query.pageNumber)
-      .set('pageSize', query.pageSize)
-      .set('descending', query.descending ?? false);
+  const params = this.buildTaskParams(query);
 
-    if (query.search) {
-      params = params.set('search', query.search);
-    }
+  return this.http
+    .get<ApiResponse<PagedResponse<Task>>>(this.apiUrl, { params })
+    .pipe(map(response => this.unwrap(response)));
+}
 
-    if (query.sortBy) {
-      params = params.set('sortBy', query.sortBy);
-    }
+getMyTasks(query: TaskQuery): Observable<PagedResponse<Task>> {
+  const params = this.buildTaskParams(query);
 
-    return this.http
-      .get<ApiResponse<PagedResponse<Task>>>(this.apiUrl, { params })
-      .pipe(map(response => this.unwrap(response)));
+  return this.http
+    .get<ApiResponse<PagedResponse<Task>>>(`${this.apiUrl}/my`, { params })
+    .pipe(map(response => this.unwrap(response)));
+}
+
+unassignTask(id: string): Observable<unknown> {
+  return this.http.delete<ApiResponse<unknown>>(
+    `${this.apiUrl}/${id}/assign`
+  );
+}
+
+private buildTaskParams(query: TaskQuery): HttpParams {
+  let params = new HttpParams()
+    .set('pageNumber', query.pageNumber)
+    .set('pageSize', query.pageSize)
+    .set('descending', query.descending ?? false);
+
+  if (query.search?.trim()) {
+    params = params.set('search', query.search.trim());
   }
+
+  if (query.sortBy) {
+    params = params.set('sortBy', query.sortBy);
+  }
+
+  if (query.projectId) {
+    params = params.set('projectId', query.projectId);
+  }
+
+  if (query.unassignedOnly) {
+    params = params.set('unassignedOnly', true);
+  }
+
+  return params;
+}
 
   getTaskById(id: string): Observable<Task> {
     return this.http

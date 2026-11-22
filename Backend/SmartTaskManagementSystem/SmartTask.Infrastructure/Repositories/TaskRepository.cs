@@ -155,6 +155,19 @@ public class TaskRepository
 
             _ => query.Where(x => false)
         };
+        // Filter by project
+        if (request.ProjectId.HasValue)
+        {
+            query = query.Where(
+                x => x.ProjectId == request.ProjectId.Value);
+        }
+
+        // Show only unassigned tasks
+        if (request.UnassignedOnly)
+        {
+            query = query.Where(
+                x => x.AssignedToUserId == null);
+        }
 
         if (onlyMyTasks)
         {

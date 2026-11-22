@@ -23,4 +23,8 @@ public class PagedRequest
     public string? SortBy { get; set; }
 
     public bool Descending { get; set; }
+
+    public Guid? ProjectId { get; set; }
+
+    public bool UnassignedOnly { get; set; }
 }

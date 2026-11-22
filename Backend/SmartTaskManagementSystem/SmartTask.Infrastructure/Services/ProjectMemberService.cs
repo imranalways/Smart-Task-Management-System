@@ -96,6 +96,9 @@ public class ProjectMemberService : IProjectMemberService
             throw new NotFoundException(
                 "Project member not found.");
 
+        if(member.UserId == _currentUserService.UserId)
+            throw new NotFoundException(
+                "You can't remove yourself.");
         var hasActiveTasks =
             await _taskRepository
                 .HasActiveTasksAssignedToUserInProjectAsync(
@@ -143,9 +146,10 @@ public class ProjectMemberService : IProjectMemberService
         Guid projectId)
     {
         var project = await _projectRepository.GetByIdAsync(projectId);
-
         if (project is null)
             throw new NotFoundException("Project not found.");
+
+        var projectMember = await _projectMemberRepository.GetMembersAsync(project.Id);
 
         // System Admin can manage every project.
         if (_currentUserService.Role == Roles.Admin)
@@ -153,7 +157,8 @@ public class ProjectMemberService : IProjectMemberService
 
         // Project Managers can manage only projects they created.
         if (_currentUserService.Role == Roles.ProjectManager &&
-            project.CreatedBy == _currentUserService.UserId)
+            (project.CreatedBy == _currentUserService.UserId ||
+            projectMember.Any(x=>x.UserId == _currentUserService.UserId)))
         {
             return project;
         }

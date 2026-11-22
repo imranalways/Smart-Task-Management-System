@@ -1,11 +1,19 @@
-
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 
 import { TaskService } from '../../../core/services/task.service';
+import { ProjectService } from '../../../core/services/project.service';
+import { ProjectMemberService } from '../../../core/services/project-member.service';
+import { AuthService } from '../../../core/services/auth.service';
+
 import { Task } from '../../../core/models/task/task.model';
+import { Project } from '../../../core/models/project/project.model';
+import { TeamMember } from '../../../core/models/team-member/team-member.model';
+
+type AssignmentFilter = 'all' | 'mine' | 'unassigned';
 
 @Component({
   selector: 'app-task-list',
@@ -16,35 +24,153 @@ import { Task } from '../../../core/models/task/task.model';
 })
 export class TaskListComponent implements OnInit {
   private readonly taskService = inject(TaskService);
+  private readonly projectService = inject(ProjectService);
+  private readonly projectMemberService = inject(ProjectMemberService);
+  private readonly authService = inject(AuthService);
 
   readonly tasks = signal<Task[]>([]);
+  readonly projects = signal<Project[]>([]);
+
   readonly loading = signal(false);
+  readonly projectsLoading = signal(false);
+
   readonly errorMessage = signal('');
+  readonly projectErrorMessage = signal('');
+
   readonly totalRecords = signal(0);
   readonly totalPages = signal(0);
 
+  // Assignment modal state
+  readonly assignModalOpen = signal(false);
+  readonly selectedTask = signal<Task | null>(null);
+  readonly teamMembers = signal<TeamMember[]>([]);
+  readonly membersLoading = signal(false);
+  readonly assigning = signal(false);
+  readonly assignError = signal('');
+
+  selectedUserId = '';
+
+  // Pagination
   pageNumber = 1;
   pageSize = 10;
+
+  // Search
   searchTerm = '';
   appliedSearch = '';
+
+  // Sorting
   sortBy = 'dueDate';
   descending = false;
 
+  // Dropdown filters
+  selectedProjectId = '';
+  assignmentFilter: AssignmentFilter = this.authService.getRole() =='Admin'? 'all':'mine';
+
+  get canAssignTasks(): boolean {
+    const role = this.authService.getRole();
+
+    return role === 'Admin' || role === 'ProjectManager';
+  }
+
+  get canUnassignTasks(): boolean {
+    return this.canAssignTasks;
+  }
+ get canDeleteTasks(): boolean {
+    return this.canAssignTasks;
+  }
+  get canEditTasks(): boolean {
+    return this.canAssignTasks;
+  }
   ngOnInit(): void {
+    this.loadProjects();
     this.loadTasks();
   }
 
+  // Load all projects for the project dropdown
+  loadProjects(): void {
+    this.projectsLoading.set(true);
+    this.projectErrorMessage.set('');
+
+    this.projectService.getProjects({
+      pageNumber: 1,
+      pageSize: 100,
+      sortBy: 'name',
+      descending: false
+    }).subscribe({
+      next: firstPage => {
+        const firstPageItems = firstPage.items ?? [];
+
+        if (firstPage.totalPages <= 1) {
+          this.projects.set(firstPageItems);
+          this.projectsLoading.set(false);
+          return;
+        }
+
+        const remainingPages = Array.from(
+          { length: firstPage.totalPages - 1 },
+          (_, index) => index + 2
+        );
+
+        forkJoin(
+          remainingPages.map(pageNumber =>
+            this.projectService.getProjects({
+              pageNumber,
+              pageSize: 100,
+              sortBy: 'name',
+              descending: false
+            })
+          )
+        ).subscribe({
+          next: responses => {
+            const allProjects = [
+              ...firstPageItems,
+              ...responses.flatMap(response => response.items ?? [])
+            ];
+
+            this.projects.set(allProjects);
+            this.projectsLoading.set(false);
+          },
+          error: () => {
+            this.projects.set(firstPageItems);
+            this.projectsLoading.set(false);
+            this.projectErrorMessage.set(
+              'Some projects could not be loaded.'
+            );
+          }
+        });
+      },
+      error: error => {
+        this.projectsLoading.set(false);
+        this.projectErrorMessage.set(
+          error?.error?.message ||
+          error?.message ||
+          'Unable to load projects.'
+        );
+      }
+    });
+  }
+
+  // Load tasks using the selected filters
   loadTasks(): void {
     this.loading.set(true);
     this.errorMessage.set('');
 
-    this.taskService.getTasks({
+    const query = {
       pageNumber: this.pageNumber,
       pageSize: this.pageSize,
       search: this.appliedSearch || undefined,
       sortBy: this.sortBy,
-      descending: this.descending
-    }).subscribe({
+      descending: this.descending,
+      projectId: this.selectedProjectId || undefined,
+      unassignedOnly: this.assignmentFilter === 'unassigned'
+    };
+
+    const request =
+      this.assignmentFilter === 'mine'
+        ? this.taskService.getMyTasks(query)
+        : this.taskService.getTasks(query);
+
+    request.subscribe({
       next: response => {
         this.tasks.set(response.items ?? []);
         this.totalRecords.set(response.totalRecords ?? 0);
@@ -62,6 +188,19 @@ export class TaskListComponent implements OnInit {
     });
   }
 
+  // Project dropdown change
+  onProjectFilterChange(): void {
+    this.pageNumber = 1;
+    this.loadTasks();
+  }
+
+  // Assignment dropdown change
+  onAssignmentFilterChange(): void {
+    this.pageNumber = 1;
+    this.loadTasks();
+  }
+
+  // Search
   search(): void {
     this.pageNumber = 1;
     this.appliedSearch = this.searchTerm.trim();
@@ -75,6 +214,7 @@ export class TaskListComponent implements OnInit {
     this.loadTasks();
   }
 
+  // Pagination
   changePage(page: number): void {
     if (page < 1 || page > this.totalPages()) {
       return;
@@ -90,6 +230,7 @@ export class TaskListComponent implements OnInit {
     this.loadTasks();
   }
 
+  // Sorting
   changeSort(field: string): void {
     if (this.sortBy === field) {
       this.descending = !this.descending;
@@ -102,6 +243,116 @@ export class TaskListComponent implements OnInit {
     this.loadTasks();
   }
 
+  // Open assignment modal and load project members
+  openAssignModal(task: Task): void {
+    if (!this.canAssignTasks) {
+      return;
+    }
+
+    this.selectedTask.set(task);
+    this.selectedUserId = '';
+    this.teamMembers.set([]);
+    this.assignError.set('');
+    this.assignModalOpen.set(true);
+
+    this.membersLoading.set(true);
+
+    this.projectMemberService.getMembers(task.projectId).subscribe({
+      next: members => {
+        const eligibleMembers = (members ?? []).filter(
+          member =>
+            member.role?.toLowerCase() === 'teammember'
+        );
+
+        this.teamMembers.set(eligibleMembers);
+        this.membersLoading.set(false);
+      },
+      error: error => {
+        this.membersLoading.set(false);
+        this.assignError.set(
+          error?.error?.message ||
+          error?.message ||
+          'Unable to load project team members.'
+        );
+      }
+    });
+  }
+
+  // Assign task to selected team member
+  assignTask(): void {
+    const task = this.selectedTask();
+
+    if (!task || !this.selectedUserId || this.assigning()) {
+      return;
+    }
+
+    this.assigning.set(true);
+    this.assignError.set('');
+
+    this.taskService.assignTask(task.id, {
+      userId: this.selectedUserId
+    }).subscribe({
+      next: () => {
+        this.assigning.set(false);
+        this.closeAssignModal();
+        this.loadTasks();
+      },
+      error: error => {
+        this.assigning.set(false);
+        this.assignError.set(
+          error?.error?.message ||
+          error?.message ||
+          'Failed to assign the task. Please try again.'
+        );
+      }
+    });
+  }
+
+  closeAssignModal(): void {
+    if (this.assigning()) {
+      return;
+    }
+
+    this.assignModalOpen.set(false);
+    this.selectedTask.set(null);
+    this.teamMembers.set([]);
+    this.selectedUserId = '';
+    this.assignError.set('');
+  }
+
+  // Unassign an existing task
+  unassignTask(task: Task): void {
+    if (!this.canUnassignTasks || !task.assignedToUserId) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to unassign "${task.title}"?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.taskService.unassignTask(task.id).subscribe({
+      next: () => {
+        if (this.tasks().length === 1 && this.pageNumber > 1) {
+          this.pageNumber--;
+        }
+
+        this.loadTasks();
+      },
+      error: error => {
+        this.errorMessage.set(
+          error?.error?.message ||
+          error?.message ||
+          'Failed to unassign task.'
+        );
+      }
+    });
+  }
+
+  // Delete task
   deleteTask(task: Task): void {
     const confirmed = window.confirm(
       `Are you sure you want to delete "${task.title}"?`
@@ -121,12 +372,14 @@ export class TaskListComponent implements OnInit {
       },
       error: error => {
         this.errorMessage.set(
-          error?.error?.message || 'Failed to delete task.'
+          error?.error?.message ||
+          'Failed to delete task.'
         );
       }
     });
   }
 
+  // Status styling
   getStatusClass(status: string): string {
     switch (status?.toLowerCase()) {
       case 'todo':
@@ -142,6 +395,7 @@ export class TaskListComponent implements OnInit {
     }
   }
 
+  // Priority styling
   getPriorityClass(priority: string): string {
     switch (priority?.toLowerCase()) {
       case 'low':

@@ -17,6 +17,8 @@ export interface TaskQuery {
   search?: string;
   sortBy?: string;
   descending?: boolean;
+  projectId?: string;
+  unassignedOnly?: boolean;
 }
 
 export interface PagedResponse<T> {

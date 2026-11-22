@@ -1,4 +1,3 @@
-
 <div class="task-page">
 
   <div class="page-header">
@@ -7,11 +6,12 @@
       <h1>My Tasks</h1>
       <p>Manage, organize and track your team's tasks.</p>
     </div>
-
+@if (canAssignTasks) {
     <a routerLink="/tasks/create" class="btn-create">
       <i class="fa-solid fa-plus"></i>
       Create Task
     </a>
+}
   </div>
 
   <div class="summary-card">
@@ -38,7 +38,9 @@
       </button>
     </div>
 
+    <!-- SEARCH AND FILTER TOOLBAR -->
     <div class="toolbar">
+
       <form class="search-form" (ngSubmit)="search()">
         <input
           type="text"
@@ -62,19 +64,73 @@
         }
       </form>
 
-      <div class="page-size">
-        <label for="pageSize">Show</label>
-        <select
-          id="pageSize"
-          [ngModel]="pageSize"
-          [ngModelOptions]="{standalone: true}"
-          (ngModelChange)="changePageSize(+$event)">
-          <option [ngValue]="10">10</option>
-          <option [ngValue]="20">20</option>
-          <option [ngValue]="50">50</option>
-        </select>
+      <div class="filter-controls">
+
+        <!-- PROJECT FILTER -->
+        <div class="filter-group">
+          <label for="projectFilter">Project</label>
+
+          <select
+            id="projectFilter"
+            [(ngModel)]="selectedProjectId"
+            [ngModelOptions]="{standalone: true}"
+            (ngModelChange)="onProjectFilterChange()">
+
+            <option value="">All Projects</option>
+
+            @for (project of projects(); track project.id) {
+              <option [value]="project.id">
+                {{ project.name }}
+              </option>
+            }
+
+          </select>
+        </div>
+
+        <!-- ASSIGNMENT FILTER -->
+        <div class="filter-group">
+          <label for="assignmentFilter">Assignment</label>
+
+          <select
+            id="assignmentFilter"
+            [(ngModel)]="assignmentFilter"
+            [ngModelOptions]="{standalone: true}"
+            (ngModelChange)="onAssignmentFilterChange()">
+
+            <option value="all">All Tasks</option>
+            <option value="mine">Assigned to Me</option>
+            <option value="unassigned">Unassigned Tasks</option>
+
+          </select>
+        </div>
+
+        <!-- PAGE SIZE -->
+        <div class="page-size">
+          <label for="pageSize">Show</label>
+
+          <select
+            id="pageSize"
+            [ngModel]="pageSize"
+            [ngModelOptions]="{standalone: true}"
+            (ngModelChange)="changePageSize(+$event)">
+
+            <option [ngValue]="10">10</option>
+            <option [ngValue]="20">20</option>
+            <option [ngValue]="50">50</option>
+
+          </select>
+        </div>
+
       </div>
     </div>
+
+    @if (projectErrorMessage()) {
+      <div class="error-message">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        {{ projectErrorMessage() }}
+        <button type="button" (click)="loadProjects()">Retry</button>
+      </div>
+    }
 
     @if (errorMessage()) {
       <div class="error-message">
@@ -85,14 +141,17 @@
     }
 
     @if (loading()) {
+
       <div class="loading-state">
         <i class="fa-solid fa-spinner fa-spin"></i>
         <span>Loading tasks...</span>
       </div>
+
     } @else if (tasks().length > 0) {
 
       <div class="table-responsive">
         <table class="task-table">
+
           <thead>
             <tr>
               <th>
@@ -101,15 +160,18 @@
                   <i class="fa-solid fa-sort"></i>
                 </button>
               </th>
+
               <th>STATUS</th>
               <th>PRIORITY</th>
               <th>ASSIGNED TO</th>
+
               <th>
                 <button type="button" (click)="changeSort('dueDate')">
                   DUE DATE
                   <i class="fa-solid fa-sort"></i>
                 </button>
               </th>
+
               <th class="text-center">ACTIONS</th>
             </tr>
           </thead>
@@ -117,11 +179,13 @@
           <tbody>
             @for (task of tasks(); track task.id) {
               <tr>
+
                 <td>
                   <div class="task-name">
                     <div class="task-icon">
                       <i class="fa-solid fa-list-check"></i>
                     </div>
+
                     <div>
                       <strong>{{ task.title }}</strong>
                       <small>{{ task.description }}</small>
@@ -130,13 +194,17 @@
                 </td>
 
                 <td>
-                  <span class="status-badge" [ngClass]="getStatusClass(task.status)">
+                  <span
+                    class="status-badge"
+                    [ngClass]="getStatusClass(task.status)">
                     {{ formatStatus(task.status) }}
                   </span>
                 </td>
 
                 <td>
-                  <span class="priority-badge" [ngClass]="getPriorityClass(task.priority)">
+                  <span
+                    class="priority-badge"
+                    [ngClass]="getPriorityClass(task.priority)">
                     {{ task.priority }}
                   </span>
                 </td>
@@ -151,19 +219,42 @@
 
                 <td>
                   <div class="actions">
+
+                    @if (canAssignTasks) {
+                      <button
+                        type="button"
+                        class="action-btn assign-btn"
+                        title="Assign task"
+                        (click)="openAssignModal(task)">
+                        <i class="fa-solid fa-user-plus"></i>
+                      </button>
+                    }
+
+                    @if (canUnassignTasks && task.assignedToUserId) {
+                      <button
+                        type="button"
+                        class="action-btn unassign-btn"
+                        title="Unassign task"
+                        (click)="unassignTask(task)">
+                        <i class="fa-solid fa-user-minus"></i>
+                      </button>
+                    }
+
                     <a
                       class="action-btn view-btn"
                       [routerLink]="['/tasks/details', task.id]"
                       title="View task">
                       <i class="fa-solid fa-eye"></i>
                     </a>
-
+                @if (task.assignedToUserId) {
                     <a
                       class="action-btn edit-btn"
                       [routerLink]="['/tasks/edit', task.id]"
                       title="Edit task">
                       <i class="fa-solid fa-pen"></i>
                     </a>
+                }
+                @if (canDeleteTasks && task.assignedToUserId) {
 
                     <button
                       type="button"
@@ -172,21 +263,26 @@
                       (click)="deleteTask(task)">
                       <i class="fa-solid fa-trash"></i>
                     </button>
+                }
                   </div>
                 </td>
+
               </tr>
             }
           </tbody>
+
         </table>
       </div>
 
       <div class="table-footer">
+
         <span>
           Showing <strong>{{ pageStart }} - {{ pageEnd }}</strong>
           of <strong>{{ totalRecords() }}</strong> tasks
         </span>
 
         <div class="pagination">
+
           <button
             type="button"
             [disabled]="pageNumber === 1"
@@ -209,28 +305,159 @@
             (click)="changePage(pageNumber + 1)">
             <i class="fa-solid fa-chevron-right"></i>
           </button>
+
         </div>
       </div>
 
     } @else if (!errorMessage()) {
+
       <div class="empty-state">
         <div class="empty-icon">
           <i class="fa-solid fa-clipboard-list"></i>
         </div>
+
         <h3>No tasks found</h3>
+
         <p>
           @if (appliedSearch) {
             Try a different search term.
+          } @else if (assignmentFilter === 'mine') {
+            You don't have any tasks assigned to you.
+          } @else if (assignmentFilter === 'unassigned') {
+            There are no unassigned tasks matching this filter.
           } @else {
-            Start by creating your first task.
+            No tasks are available for the selected project.
           }
         </p>
+@if (canAssignTasks) {
         <a routerLink="/tasks/create" class="btn-create">
           <i class="fa-solid fa-plus"></i>
           Create Task
         </a>
+    }
       </div>
+
     }
 
   </section>
 </div>
+
+
+<!-- ASSIGN TASK MODAL -->
+@if (assignModalOpen()) {
+
+  <div class="assign-modal-backdrop" (click)="closeAssignModal()">
+
+    <div
+      class="assign-modal"
+      (click)="$event.stopPropagation()">
+
+      <div class="assign-modal-header">
+        <div>
+          <span class="eyebrow">TASK MANAGEMENT</span>
+          <h3>Assign Task</h3>
+        </div>
+
+        <button
+          type="button"
+          class="modal-close-btn"
+          [disabled]="assigning()"
+          (click)="closeAssignModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      @if (selectedTask(); as task) {
+
+        <div class="assign-modal-body">
+
+          <div class="selected-task-info">
+            <span>Selected Task</span>
+            <strong>{{ task.title }}</strong>
+          </div>
+
+          <div class="assign-form-group">
+            <label for="teamMember">Select Team Member</label>
+
+            @if (membersLoading()) {
+
+              <div class="modal-loading">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                Loading project members...
+              </div>
+
+            } @else if (teamMembers().length > 0) {
+
+              <select
+                id="teamMember"
+                [(ngModel)]="selectedUserId"
+                [ngModelOptions]="{standalone: true}">
+
+                <option value="">-- Select a team member --</option>
+
+                @for (member of teamMembers(); track member.userId) {
+                  <option [value]="member.userId">
+                    {{ member.fullName }} ({{ member.email }})
+                  </option>
+                }
+
+              </select>
+
+            } @else {
+
+              <div class="no-members-message">
+                <i class="fa-solid fa-circle-info"></i>
+                No team members are available in this project.
+              </div>
+
+            }
+          </div>
+
+          @if (assignError()) {
+            <div class="assign-error">
+              <i class="fa-solid fa-circle-exclamation"></i>
+              {{ assignError() }}
+            </div>
+          }
+
+        </div>
+
+        <div class="assign-modal-footer">
+
+          <button
+            type="button"
+            class="btn-modal-cancel"
+            [disabled]="assigning()"
+            (click)="closeAssignModal()">
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            class="btn-modal-assign"
+            [disabled]="
+              assigning() ||
+              membersLoading() ||
+              !selectedUserId ||
+              teamMembers().length === 0
+            "
+            (click)="assignTask()">
+
+            @if (assigning()) {
+              <i class="fa-solid fa-spinner fa-spin"></i>
+              Assigning...
+            } @else {
+              <i class="fa-solid fa-user-check"></i>
+              Assign Task
+            }
+
+          </button>
+
+        </div>
+
+      }
+
+    </div>
+  </div>
+
+}

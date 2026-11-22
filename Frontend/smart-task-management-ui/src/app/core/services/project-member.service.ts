@@ -35,7 +35,7 @@ export class ProjectMemberService {
 
   getAvailableUsers(): Observable<UserDirectory[]> {
     return this.http.get<ApiResponse<UserDirectory[]>>(
-      `${this.apiUrl}/users`
+      `${this.apiUrl}/users/GetUsersForTeamMember`
     ).pipe(
       map(response => {
         if (!response.success) {

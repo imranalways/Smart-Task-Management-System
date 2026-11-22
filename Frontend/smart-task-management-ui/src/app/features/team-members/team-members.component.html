@@ -33,7 +33,7 @@
         [(ngModel)]="selectedProjectId"
         (ngModelChange)="onProjectChange()">
 
-        <option value="" disabled>Select a project</option>
+        <option value="" disabled>-- Select a project --</option>
 
         @for (project of projects(); track project.id) {
           <option [value]="project.id">
@@ -80,7 +80,7 @@
           id="userSelect"
           [(ngModel)]="selectedUserId">
 
-          <option value="">Choose a team member</option>
+          <option value="">-- Choose a team member --</option>
 
           @for (user of filteredUsers; track user.id) {
             <option [value]="user.id">

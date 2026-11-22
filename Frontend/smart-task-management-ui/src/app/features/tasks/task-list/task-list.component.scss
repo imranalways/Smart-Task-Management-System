@@ -335,6 +335,7 @@
   justify-content: center;
   text-decoration: none;
   cursor: pointer;
+  transition: all 0.15s ease;
 
   &:hover {
     background: #f5f7fb;
@@ -352,6 +353,18 @@
 
 .delete-btn {
   color: #ef4444;
+}
+
+/* New assignment button - matches existing action buttons */
+.assign-btn {
+  color: #0d9488;
+  background: #fff;
+  border-color: #ccfbf1;
+
+  &:hover {
+    color: #0f766e;
+    background: #f0fdfa;
+  }
 }
 
 .table-footer {
@@ -447,6 +460,185 @@
   }
 }
 
+/* Assignment modal - separate from the original task page layout */
+
+.assign-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.assign-modal {
+  width: 100%;
+  max-width: 460px;
+  background: #fff;
+  border: 1px solid #e8edf5;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(25, 40, 80, 0.18);
+  overflow: hidden;
+}
+
+.assign-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 24px;
+  border-bottom: 1px solid #edf0f5;
+
+  h3 {
+    margin: 6px 0 0;
+    color: #172033;
+    font-size: 19px;
+    font-weight: 700;
+  }
+}
+
+.modal-close-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #e5eaf2;
+  border-radius: 9px;
+  background: #fff;
+  color: #64748b;
+  cursor: pointer;
+
+  &:hover {
+    background: #f7f8fc;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.assign-modal-body {
+  padding: 24px;
+}
+
+.selected-task-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 15px;
+  margin-bottom: 22px;
+  background: #f7f8fc;
+  border: 1px solid #e8edf5;
+  border-radius: 10px;
+
+  span {
+    color: #8490a5;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+  }
+
+  strong {
+    color: #172033;
+    font-size: 14px;
+  }
+
+  small {
+    color: #8490a5;
+    font-size: 12px;
+  }
+}
+
+.assign-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+
+  label {
+    color: #526078;
+    font-size: 13px;
+    font-weight: 650;
+  }
+
+  select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #e1e7f0;
+    border-radius: 9px;
+    outline: none;
+    background: #fff;
+    color: #172033;
+
+    &:focus {
+      border-color: #5865e9;
+      box-shadow: 0 0 0 3px rgba(88, 101, 233, 0.1);
+    }
+  }
+}
+
+.modal-loading,
+.no-members-message {
+  padding: 13px;
+  border: 1px solid #e8edf5;
+  border-radius: 9px;
+  background: #f7f8fc;
+  color: #8490a5;
+  font-size: 13px;
+}
+
+.assign-error {
+  margin-top: 15px;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 9px;
+  color: #dc2626;
+  background: #fff0f0;
+  font-size: 13px;
+}
+
+.assign-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #edf0f5;
+}
+
+.btn-modal-cancel,
+.btn-modal-assign {
+  border-radius: 9px;
+  padding: 10px 17px;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.btn-modal-cancel {
+  border: 1px solid #e3e8f0;
+  background: #fff;
+  color: #526078;
+
+  &:hover:not(:disabled) {
+    background: #f7f8fc;
+  }
+}
+
+.btn-modal-assign {
+  border: 1px solid #5865e9;
+  background: #5865e9;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #4653d8;
+  }
+}
+
 @media (max-width: 768px) {
   .task-page {
     padding: 16px;
@@ -481,5 +673,90 @@
 
   .card-header {
     padding: 20px;
+  }
+
+  .assign-modal {
+    max-width: 100%;
+  }
+}
+/* Project and assignment dropdown filters */
+
+.filter-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #8490a5;
+  font-size: 13px;
+
+  label {
+    white-space: nowrap;
+  }
+
+  select {
+    min-width: 155px;
+    max-width: 220px;
+    border: 1px solid #e1e7f0;
+    background: #fff;
+    padding: 10px 13px;
+    border-radius: 9px;
+    color: #172033;
+    outline: none;
+
+    &:focus {
+      border-color: #5865e9;
+      box-shadow: 0 0 0 3px rgba(88, 101, 233, 0.1);
+    }
+  }
+}
+
+/* Unassign button */
+
+.unassign-btn {
+  color: #d97706;
+  background: #fff;
+  border-color: #fed7aa;
+
+  &:hover {
+    color: #b45309;
+    background: #fff7ed;
+    border-color: #fed7aa;
+  }
+}
+
+/* Responsive filters */
+
+@media (max-width: 1100px) {
+  .toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .filter-controls {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .filter-group {
+    align-items: flex-start;
+    flex-direction: column;
+
+    select {
+      width: 100%;
+      max-width: none;
+    }
   }
 }

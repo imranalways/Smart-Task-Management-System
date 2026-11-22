@@ -44,12 +44,7 @@
         <i class="fa-solid fa-list-check"></i>
         <span>My Tasks</span>
       </a>
-    @if (auth.getRole() === 'Admin' ||auth.getRole() == 'Project Manager') {
-
-      <span class="nav-section-title management-title">
-        MANAGEMENT
-      </span>
-    @if (auth.getRole() === 'Admin' ||auth.getRole() == 'Project Manager') {
+    @if (auth.getRole() === 'Admin' || auth.getRole() == 'ProjectManager') {
       <a
         routerLink="/team"
         routerLinkActive="active"
@@ -68,7 +63,6 @@
           <span>User Roles</span>
         </a>
       }
-    }
     </nav>
 
     <!-- Sidebar Footer -->

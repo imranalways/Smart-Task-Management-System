@@ -6,7 +6,8 @@ import { FormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
 
 import { ProjectMemberService } from '../../core/services/project-member.service';
-
+import { getHttpErrorMessage } from
+  '../../core/utils/http-error.util';
 import {
   ApiResponse,
   ProjectOption,
@@ -159,13 +160,18 @@ export class TeamMembersComponent implements OnInit {
       member.userId
     ).subscribe({
       next: () => {
+        this.errorMessage.set('');
         this.successMessage.set('Team member removed successfully.');
         this.loadMembers();
         this.loadAvailableUsers();
       },
       error: error => {
         this.errorMessage.set(
-          error.error?.message || 'Unable to remove team member.'
+          error.error?.message
+           || getHttpErrorMessage(
+            error,
+            'Failed to remove project member.'
+          )
         );
       }
     });

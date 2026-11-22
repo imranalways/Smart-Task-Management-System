@@ -15,8 +15,7 @@ public class ExceptionHandlingMiddleware
         _next = next;
     }
 
-    public async Task InvokeAsync(
-        HttpContext context)
+    public async Task InvokeAsync(HttpContext context)
     {
         try
         {
@@ -24,9 +23,25 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            await HandleExceptionAsync(
-                context,
-                ex);
+            context.Response.ContentType = "application/json";
+
+            var (statusCode, message) = ex switch
+            {
+                NotFoundException => (StatusCodes.Status404NotFound, ex.Message),
+                BadRequestException => (StatusCodes.Status400BadRequest, ex.Message),
+                ForbiddenException => (StatusCodes.Status403Forbidden, ex.Message),
+                UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, ex.Message),
+                _ => (StatusCodes.Status500InternalServerError,
+                      "An unexpected error occurred.")
+            };
+
+            context.Response.StatusCode = statusCode;
+
+            await context.Response.WriteAsJsonAsync(new
+            {
+                success = false,
+                message
+            });
         }
     }
 

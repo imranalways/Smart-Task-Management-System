@@ -141,6 +141,17 @@ public class TaskService : ITaskService
         await _taskRepository.SaveChangesAsync();
     }
 
+    public async Task UnassignTaskAsync(Guid taskId)
+    {
+        var task = await GetTaskForManagementAsync(taskId);
+
+        task.AssignedToUserId = null;
+        task.UpdatedAt = DateTime.UtcNow;
+
+        await _taskRepository.UpdateAsync(task);
+        await _taskRepository.SaveChangesAsync();
+    }
+
     public async Task UpdateStatusAsync(
         Guid taskId,
         UpdateTaskStatusRequestDto request)
@@ -159,7 +170,7 @@ public class TaskService : ITaskService
         }
         else
         {
-            EnsureCanManageTask(task);
+            await EnsureCanManageTask(task);
         }
 
         if (task.Status == TaskItemStatus.Completed &&
@@ -217,6 +228,7 @@ public class TaskService : ITaskService
         {
             throw new NotFoundException("Task not found.");
         }
+        var projectMember = await _projectMemberRepository.GetMembersAsync(task.ProjectId);
 
         var role = _currentUserService.Role;
 
@@ -224,9 +236,9 @@ public class TaskService : ITaskService
         {
             Roles.Admin => true,
 
-            Roles.ProjectManager => true,
-                //(task.Project.CreatedBy == _currentUserService.UserId
-                //|| task.Project.Members.Any(m=>m.UserId == _currentUserService.UserId)),
+            Roles.ProjectManager => 
+            (task.Project.CreatedBy == _currentUserService.UserId ||
+             projectMember.Any(x => x.UserId == _currentUserService.UserId)),
 
             Roles.TeamMember =>
                 await _projectMemberRepository.ExistsAsync(
@@ -247,13 +259,14 @@ public class TaskService : ITaskService
     private async Task<TaskItem> GetTaskForManagementAsync(Guid id)
     {
         var task = await GetTaskForViewingAsync(id);
-        EnsureCanManageTask(task);
+        await EnsureCanManageTask(task);
         return task;
     }
 
-    private void EnsureCanManageTask(TaskItem task)
+    private async Task EnsureCanManageTask(TaskItem task)
     {
         var role = _currentUserService.Role;
+        var projectMember = await _projectMemberRepository.GetMembersAsync(task.ProjectId);
 
         if (role == Roles.Admin)
         {
@@ -261,7 +274,8 @@ public class TaskService : ITaskService
         }
 
         if (role == Roles.ProjectManager &&
-            task.Project.CreatedBy == _currentUserService.UserId)
+            task.Project.CreatedBy == _currentUserService.UserId ||
+            projectMember.Any(x => x.UserId == _currentUserService.UserId))
         {
             return;
         }
@@ -279,7 +293,7 @@ public class TaskService : ITaskService
         {
             throw new NotFoundException("Project not found.");
         }
-
+        var projectMember = await _projectMemberRepository.GetMembersAsync(projectId);
         var role = _currentUserService.Role;
 
         if (role == Roles.Admin)
@@ -287,9 +301,9 @@ public class TaskService : ITaskService
             return project;
         }
 
-        if (role == Roles.ProjectManager)
-            //&&
-            //(project.CreatedBy == _currentUserService.UserId || project.Members.Any(m => m.UserId == _currentUserService.UserId)))
+        if (role == Roles.ProjectManager
+            &&
+            (project.CreatedBy == _currentUserService.UserId || projectMember.Any(m => m.UserId == _currentUserService.UserId)))
         {
             return project;
         }

@@ -23,9 +23,12 @@ public interface ITaskService
         Guid taskId,
         Guid userId);
 
+    Task UnassignTaskAsync(Guid taskId);
+
     Task UpdateStatusAsync(
         Guid taskId,
         UpdateTaskStatusRequestDto request);
+
     Task<PagedResponse<TaskDto>> GetMyTasksAsync(
     PagedRequest request);
 }

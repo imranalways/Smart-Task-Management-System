@@ -169,4 +169,18 @@ public class TasksController : ControllerBase
             Data = result
         });
     }
+    [Authorize(Roles = $"{Roles.Admin},{Roles.ProjectManager}")]
+    [HttpDelete("{taskId:guid}/assign")]
+    public async Task<IActionResult> UnassignTask(Guid taskId)
+    {
+        await _taskService.UnassignTaskAsync(taskId);
+
+        return Ok(
+            new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Task unassigned successfully.",
+                Data = null
+            });
+    }
 }

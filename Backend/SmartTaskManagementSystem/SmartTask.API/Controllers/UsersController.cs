@@ -43,4 +43,26 @@ public class UsersController : ControllerBase
             Data = result
         });
     }
+    [HttpGet("GetUsersForTeamMember")]
+    public async Task<IActionResult> GetUsersForTeamMember()
+    {
+        var users = await _userRepository.GetAllAsync();
+
+        var result = users.Where(x => x.IsActive).Select(user => new UserDirectoryDto
+        {
+            Id = user.Id,
+            FullName = $"{user.FirstName} {user.LastName}",
+            Email = user.Email,
+            Role = user.UserRoles
+                .FirstOrDefault()?
+                .Role.Name ?? string.Empty
+        }).Where(x=> x.Role != nameof(Domain.Enums.UserRole.Admin)).ToList();
+
+        return Ok(new ApiResponse<object>
+        {
+            Success = true,
+            Message = "Users retrieved successfully.",
+            Data = result
+        });
+    }
 }

@@ -52,7 +52,7 @@ export const routes: Routes = [
             import('./features/team-members/team-members.component')
             .then(m => m.TeamMembersComponent),
             canActivate: [roleGuard],
-            data: { roles: ['Admin','Project Manager'] }
+            data: { roles: ['Admin','ProjectManager'] }
         },
         {
         path: 'user-roles',
