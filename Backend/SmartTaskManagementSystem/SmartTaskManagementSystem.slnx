@@ -3,6 +3,4 @@
   <Project Path="SmartTask.Application/SmartTask.Application.csproj" />
   <Project Path="SmartTask.Domain/SmartTask.Domain.csproj" />
   <Project Path="SmartTask.Infrastructure/SmartTask.Infrastructure.csproj" />
-  <Project Path="SmartTask.IntegrationTests/SmartTask.IntegrationTests.csproj" />
-  <Project Path="SmartTask.UnitTests/SmartTask.UnitTests.csproj" />
 </Solution>
