@@ -8,11 +8,12 @@
       <h1>Projects</h1>
       <p>Manage, organize and track all your projects.</p>
     </div>
-
+@if (canViewProject) {
     <button class="btn-create" (click)="createProject()">
       <i class="fa-solid fa-plus"></i>
       Create Project
     </button>
+}
   </div>
 
   <!-- Project Statistics -->
@@ -247,7 +248,7 @@
                         <i class="fa-regular fa-eye"></i>
 
                       </button>
-
+                    @if (canViewProject) {
                       <button
                         title="Edit project"
                         (click)="editProject(project)">
@@ -255,7 +256,7 @@
                         <i class="fa-regular fa-pen-to-square"></i>
 
                       </button>
-
+                    
                       <button
                         class="delete-action"
                         title="Delete project"
@@ -264,7 +265,7 @@
                         <i class="fa-regular fa-trash-can"></i>
 
                       </button>
-
+                    }
                     </div>
                   </td>
 
@@ -340,12 +341,12 @@
           </p>
 
           @if (!searchTerm) {
-
+            @if (canViewProject) {
             <button class="btn-create" (click)="createProject()">
               <i class="fa-solid fa-plus"></i>
               Create Project
             </button>
-
+        }
           } @else {
 
             <button class="btn-search" (click)="clearSearch()">
@@ -671,7 +672,7 @@
         Close
 
       </button>
-
+@if (canViewProject) {
       <button
         type="button"
         class="modal-btn-primary"
@@ -681,7 +682,7 @@
         Edit Project
 
       </button>
-
+    }
     } @else {
 
       <button

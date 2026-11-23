@@ -9,6 +9,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
+import { AuthService } from '../../../core/services/auth.service';
 
 import { ProjectService } from '../../../core/services/project.service';
 
@@ -41,7 +42,7 @@ export class ProjectListComponent implements OnInit {
 
   private readonly projectService = inject(ProjectService);
   private readonly fb = inject(FormBuilder);
-
+  private readonly authService = inject(AuthService);
   // Project list state
   readonly projects = signal<Project[]>([]);
   readonly loading = signal(false);
@@ -152,7 +153,10 @@ export class ProjectListComponent implements OnInit {
     this.pageNumber = 1;
     this.loadProjects();
   }
-
+  get canViewProject(): boolean {
+    const role = this.authService.getRole();
+    return role === 'Admin' || role === 'ProjectManager';
+  }
   clearSearch(): void {
     this.searchTerm = '';
     this.pageNumber = 1;
