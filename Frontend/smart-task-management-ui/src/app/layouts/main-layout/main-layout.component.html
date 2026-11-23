@@ -1,3 +1,4 @@
+
 <div class="app-layout">
 
   <!-- Sidebar -->
@@ -25,6 +26,7 @@
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: true }"
         class="nav-link">
+
         <i class="fa-solid fa-chart-pie"></i>
         <span>Dashboard</span>
       </a>
@@ -33,6 +35,7 @@
         routerLink="/projects"
         routerLinkActive="active"
         class="nav-link">
+
         <i class="fa-solid fa-folder-open"></i>
         <span>Projects</span>
       </a>
@@ -41,28 +44,34 @@
         routerLink="/tasks"
         routerLinkActive="active"
         class="nav-link">
+
         <i class="fa-solid fa-list-check"></i>
         <span>My Tasks</span>
       </a>
-    @if (auth.getRole() === 'Admin' || auth.getRole() == 'ProjectManager') {
-      <a
-        routerLink="/team"
-        routerLinkActive="active"
-        class="nav-link">
-        <i class="fa-solid fa-users"></i>
-        <span>Team Members</span>
-      </a>
-    }
+
+      @if (auth.getRole() === 'Admin' || auth.getRole() === 'ProjectManager') {
+        <a
+          routerLink="/team"
+          routerLinkActive="active"
+          class="nav-link">
+
+          <i class="fa-solid fa-users"></i>
+          <span>Team Members</span>
+        </a>
+      }
+
       <!-- Admin Only -->
       @if (auth.getRole() === 'Admin') {
         <a
           routerLink="/user-roles"
           routerLinkActive="active"
           class="nav-link">
+
           <i class="fa-solid fa-user-shield"></i>
           <span>User Roles</span>
         </a>
       }
+
     </nav>
 
     <!-- Sidebar Footer -->
@@ -72,11 +81,6 @@
         <i class="fa-solid fa-shield-halved"></i>
         <span>Secure Workspace</span>
       </div>
-
-      <button class="logout-button" (click)="logout()">
-        <i class="fa-solid fa-right-from-bracket"></i>
-        <span>Logout</span>
-      </button>
 
     </div>
 
@@ -88,20 +92,68 @@
     <!-- Topbar -->
     <header class="topbar">
 
-      <div>
+      <div class="topbar-left">
         <span class="topbar-label"></span>
         <h6></h6>
       </div>
 
-      <div class="topbar-user">
-        <div class="topbar-avatar">
-          <i class="fa-solid fa-user"></i>
-        </div>
+      <!-- User Profile Dropdown -->
+      <div class="topbar-user-container">
 
-        <div>
-          <strong>{{ auth.getUserName() }}</strong>
-          <span>{{ auth.getRole() }}</span>
-        </div>
+        <button
+          type="button"
+          class="topbar-user-trigger"
+          [class.active]="userMenuOpen"
+          (click)="toggleUserMenu()"
+          [attr.aria-expanded]="userMenuOpen"
+          aria-haspopup="true"
+          aria-label="Open user menu">
+
+          <div class="topbar-avatar">
+            <i class="fa-solid fa-user"></i>
+          </div>
+
+          <div class="topbar-user-info">
+            <strong>{{ auth.getUserName() }}</strong>
+            <span>{{ auth.getRole() }}</span>
+          </div>
+
+          <i
+            class="fa-solid fa-chevron-down dropdown-arrow"
+            [class.rotated]="userMenuOpen">
+          </i>
+
+        </button>
+
+        <!-- Dropdown Menu -->
+        @if (userMenuOpen) {
+          <div class="user-dropdown">
+
+            <div class="dropdown-user-info">
+              <div class="dropdown-avatar">
+                <i class="fa-solid fa-user"></i>
+              </div>
+
+              <div>
+                <strong>{{ auth.getUserName() }}</strong>
+                <span>{{ auth.getRole() }}</span>
+              </div>
+            </div>
+
+            <div class="dropdown-divider"></div>
+
+            <button
+              type="button"
+              class="dropdown-logout"
+              (click)="logout()">
+
+              <i class="fa-solid fa-right-from-bracket"></i>
+              <span>Logout</span>
+            </button>
+
+          </div>
+        }
+
       </div>
 
     </header>
