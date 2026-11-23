@@ -1,1 +1,61 @@
-<p>confirm-dialog works!</p>
+
+<app-modal
+  [open]="open"
+  [title]="title"
+  size="md"
+  [showCloseButton]="true"
+  [closeOnBackdrop]="!loading"
+  [closeOnEscape]="!loading"
+  (closed)="cancel()"
+>
+
+  <div modal-body class="confirmation-body">
+
+    <div
+      class="confirmation-icon"
+      [ngClass]="confirmVariant"
+    >
+      @if (confirmVariant === 'danger') {
+        <i class="fa-solid fa-trash-can"></i>
+      } @else if (confirmVariant === 'warning') {
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      } @else {
+        <i class="fa-solid fa-circle-question"></i>
+      }
+    </div>
+
+    <p>{{ message }}</p>
+
+  </div>
+
+  <div modal-footer>
+
+    <button
+      type="button"
+      class="btn-cancel"
+      [disabled]="loading"
+      (click)="cancel()"
+    >
+      {{ cancelText }}
+    </button>
+
+    <button
+      type="button"
+      class="btn-confirm"
+      [ngClass]="confirmVariant"
+      [disabled]="loading"
+      (click)="confirm()"
+    >
+
+      @if (loading) {
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        Processing...
+      } @else {
+        {{ confirmText }}
+      }
+
+    </button>
+
+  </div>
+
+</app-modal>

@@ -1,0 +1,51 @@
+
+@if (open) {
+  <div
+    class="modal-overlay"
+    (click)="onBackdropClick($event)"
+  >
+    <section
+      class="modal-dialog"
+      [ngClass]="'modal-' + size"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="title || 'Dialog'"
+    >
+
+      <!-- Modal Header -->
+      <header class="modal-header">
+        <div class="modal-heading">
+          @if (title) {
+            <h2>{{ title }}</h2>
+          }
+
+          @if (subtitle) {
+            <p>{{ subtitle }}</p>
+          }
+        </div>
+
+        @if (showCloseButton) {
+          <button
+            type="button"
+            class="modal-close"
+            aria-label="Close dialog"
+            (click)="close()"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        }
+      </header>
+
+      <!-- Modal Content -->
+      <div class="modal-content">
+        <ng-content select="[modal-body]"></ng-content>
+      </div>
+
+      <!-- Modal Footer -->
+      <footer class="modal-footer">
+        <ng-content select="[modal-footer]"></ng-content>
+      </footer>
+
+    </section>
+  </div>
+}

@@ -17,13 +17,15 @@ export interface CreateProjectRequest {
   endDate: string;
 }
 
+
 export interface UpdateProjectRequest {
   name: string;
   description: string;
-  status: string;
+  status: string | number;
   startDate: string;
   endDate: string;
 }
+
 
 export interface PagedResponse<T> {
   pageNumber: number;

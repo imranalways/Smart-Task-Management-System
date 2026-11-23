@@ -17,10 +17,12 @@
 
   <!-- Project Statistics -->
   <div class="project-summary">
+
     <div class="summary-card">
       <div class="summary-icon purple">
         <i class="fa-solid fa-folder-open"></i>
       </div>
+
       <div>
         <span>Total Projects</span>
         <h3>{{ totalRecords }}</h3>
@@ -31,11 +33,13 @@
       <div class="summary-icon green">
         <i class="fa-solid fa-calendar-check"></i>
       </div>
+
       <div>
         <span>Current Page</span>
         <h3>{{ pageNumber }} / {{ totalPages || 1 }}</h3>
       </div>
     </div>
+
   </div>
 
   <!-- Project Content -->
@@ -47,10 +51,16 @@
         <p>View and manage your project portfolio.</p>
       </div>
 
-      <button class="btn-refresh" (click)="loadProjects()"
-              [disabled]="loading()">
-        <i class="fa-solid fa-rotate"
-           [class.fa-spin]="loading()"></i>
+      <button
+        class="btn-refresh"
+        (click)="loadProjects()"
+        [disabled]="loading()">
+
+        <i
+          class="fa-solid fa-rotate"
+          [class.fa-spin]="loading()">
+        </i>
+
         Refresh
       </button>
     </div>
@@ -69,7 +79,9 @@
         />
 
         @if (searchTerm) {
-          <button class="clear-search" (click)="clearSearch()">
+          <button
+            class="clear-search"
+            (click)="clearSearch()">
             <i class="fa-solid fa-xmark"></i>
           </button>
         }
@@ -81,20 +93,23 @@
 
       <div class="page-size">
         <label for="pageSize">Show</label>
+
         <select
           id="pageSize"
           [ngModel]="pageSize"
           (ngModelChange)="changePageSize(+$event)">
+
           <option [ngValue]="5">5</option>
           <option [ngValue]="10">10</option>
           <option [ngValue]="20">20</option>
           <option [ngValue]="50">50</option>
+
         </select>
       </div>
 
     </div>
 
-    <!-- Error -->
+    <!-- List Error -->
     @if (errorMessage()) {
       <div class="error-message">
         <i class="fa-solid fa-circle-exclamation"></i>
@@ -118,117 +133,149 @@
       @if (projects().length > 0) {
 
         <div class="table-responsive">
+
           <table class="project-table">
 
             <thead>
               <tr>
+
                 <th>
-                  <button class="sort-button"
-                          (click)="changeSort('name')">
+                  <button
+                    class="sort-button"
+                    (click)="changeSort('name')">
+
                     PROJECT
-                    <i class="fa-solid"
-                       [ngClass]="sortBy === 'name'
-                         ? (descending ? 'fa-arrow-down' : 'fa-arrow-up')
-                         : 'fa-sort'">
+
+                    <i
+                      class="fa-solid"
+                      [ngClass]="sortBy === 'name'
+                        ? (descending ? 'fa-arrow-down' : 'fa-arrow-up')
+                        : 'fa-sort'">
                     </i>
+
                   </button>
                 </th>
 
                 <th>STATUS</th>
 
                 <th>
-                  <button class="sort-button"
-                          (click)="changeSort('startDate')">
+                  <button
+                    class="sort-button"
+                    (click)="changeSort('startDate')">
+
                     START DATE
-                    <i class="fa-solid"
-                       [ngClass]="sortBy === 'startDate'
-                         ? (descending ? 'fa-arrow-down' : 'fa-arrow-up')
-                         : 'fa-sort'">
+
+                    <i
+                      class="fa-solid"
+                      [ngClass]="sortBy === 'startDate'
+                        ? (descending ? 'fa-arrow-down' : 'fa-arrow-up')
+                        : 'fa-sort'">
                     </i>
+
                   </button>
                 </th>
 
                 <th>
-                  <button class="sort-button"
-                          (click)="changeSort('endDate')">
+                  <button
+                    class="sort-button"
+                    (click)="changeSort('endDate')">
+
                     DUE DATE
-                    <i class="fa-solid"
-                       [ngClass]="sortBy === 'endDate'
-                         ? (descending ? 'fa-arrow-down' : 'fa-arrow-up')
-                         : 'fa-sort'">
+
+                    <i
+                      class="fa-solid"
+                      [ngClass]="sortBy === 'endDate'
+                        ? (descending ? 'fa-arrow-down' : 'fa-arrow-up')
+                        : 'fa-sort'">
                     </i>
+
                   </button>
                 </th>
 
                 <th>CREATED BY</th>
                 <th class="text-end">ACTIONS</th>
+
               </tr>
             </thead>
 
             <tbody>
+
               @for (project of projects(); track project.id) {
+
                 <tr>
 
                   <td>
                     <div class="project-name">
+
                       <div class="project-icon">
                         <i class="fa-solid fa-folder"></i>
                       </div>
 
                       <div>
                         <strong>{{ project.name }}</strong>
+
                         <span>
                           {{ project.description || 'No description provided' }}
                         </span>
                       </div>
+
                     </div>
                   </td>
 
                   <td>
-                    <span class="status-badge"
-                          [ngClass]="getStatusClass(project.status)">
+                    <span
+                      class="status-badge"
+                      [ngClass]="getStatusClass(project.status)">
+
                       {{ project.status }}
+
                     </span>
                   </td>
 
                   <td>{{ formatDate(project.startDate) }}</td>
-
                   <td>{{ formatDate(project.endDate) }}</td>
 
-                  <td>
-                    {{ project.createdByName || 'Unknown' }}
-                  </td>
+                  <td>{{ project.createdByName || 'Unknown' }}</td>
 
                   <td>
                     <div class="action-buttons">
 
                       <button
                         title="View project"
-                        (click)="viewProject(project.id)">
+                        (click)="viewProject(project)">
+
                         <i class="fa-regular fa-eye"></i>
+
                       </button>
 
                       <button
                         title="Edit project"
-                        (click)="editProject(project.id)">
+                        (click)="editProject(project)">
+
                         <i class="fa-regular fa-pen-to-square"></i>
+
                       </button>
 
                       <button
                         class="delete-action"
                         title="Delete project"
                         (click)="deleteProject(project)">
+
                         <i class="fa-regular fa-trash-can"></i>
+
                       </button>
 
                     </div>
                   </td>
 
                 </tr>
+
               }
+
             </tbody>
 
           </table>
+
         </div>
 
         <!-- Pagination -->
@@ -245,29 +292,39 @@
             <button
               (click)="goToPage(pageNumber - 1)"
               [disabled]="pageNumber <= 1">
+
               <i class="fa-solid fa-chevron-left"></i>
+
             </button>
 
             @for (page of pageNumbers; track page) {
+
               <button
                 [class.active]="page === pageNumber"
                 (click)="goToPage(page)">
+
                 {{ page }}
+
               </button>
+
             }
 
             <button
               (click)="goToPage(pageNumber + 1)"
               [disabled]="pageNumber >= totalPages">
+
               <i class="fa-solid fa-chevron-right"></i>
+
             </button>
 
           </div>
+
         </div>
 
       } @else {
 
         <div class="empty-state">
+
           <div class="empty-icon">
             <i class="fa-regular fa-folder-open"></i>
           </div>
@@ -283,15 +340,20 @@
           </p>
 
           @if (!searchTerm) {
+
             <button class="btn-create" (click)="createProject()">
               <i class="fa-solid fa-plus"></i>
               Create Project
             </button>
+
           } @else {
+
             <button class="btn-search" (click)="clearSearch()">
               Clear Search
             </button>
+
           }
+
         </div>
 
       }
@@ -299,4 +361,383 @@
     }
 
   </section>
+
 </div>
+
+
+<!-- ================================================= -->
+<!-- CREATE / EDIT / DETAILS MODAL                      -->
+<!-- ================================================= -->
+
+<app-modal
+  [open]="modalMode() !== null"
+  [title]="
+    modalMode() === 'create'
+      ? 'Create New Project'
+      : modalMode() === 'edit'
+        ? 'Edit Project'
+        : 'Project Details'
+  "
+  [subtitle]="
+    modalMode() === 'create'
+      ? 'Set up a project and define its timeline.'
+      : modalMode() === 'edit'
+        ? 'Update project information and its current status.'
+        : 'View project information, ownership and timeline.'
+  "
+  size="xl"
+  [closeOnBackdrop]="!saving()"
+  [closeOnEscape]="!saving()"
+  (closed)="closeProjectModal()"
+>
+
+  <!-- Modal Body -->
+  <div modal-body>
+
+    <!-- Create / Edit Form -->
+    @if (modalMode() === 'create' || modalMode() === 'edit') {
+
+      <form
+        [formGroup]="projectForm"
+        (ngSubmit)="saveProject()"
+        class="project-modal-form">
+
+        @if (formError()) {
+          <div class="modal-error">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            {{ formError() }}
+          </div>
+        }
+
+        <div class="modal-form-fields">
+
+          <!-- Project Name -->
+          <div class="modal-form-group full-width">
+
+            <label for="modalProjectName">
+              Project Name <span>*</span>
+            </label>
+
+            <input
+              id="modalProjectName"
+              type="text"
+              formControlName="name"
+              maxlength="100"
+              placeholder="Enter project name"
+              [class.invalid]="
+                projectForm.controls.name.invalid &&
+                projectForm.controls.name.touched
+              "
+            />
+
+            @if (
+              projectForm.controls.name.invalid &&
+              projectForm.controls.name.touched
+            ) {
+              <small>
+                Project name is required and must contain at least 3 characters.
+              </small>
+            }
+
+          </div>
+
+          <!-- Description -->
+          <div class="modal-form-group full-width">
+
+            <label for="modalProjectDescription">
+              Description <span>*</span>
+            </label>
+
+            <textarea
+              id="modalProjectDescription"
+              formControlName="description"
+              rows="5"
+              maxlength="1000"
+              placeholder="Describe the purpose and scope of this project..."
+              [class.invalid]="
+                projectForm.controls.description.invalid &&
+                projectForm.controls.description.touched
+              "
+            ></textarea>
+
+            <div class="modal-field-footer">
+              <span>Provide a clear overview of the project.</span>
+              <span>
+                {{ projectForm.controls.description.value.length }}/1000
+              </span>
+            </div>
+
+            @if (
+              projectForm.controls.description.invalid &&
+              projectForm.controls.description.touched
+            ) {
+              <small>
+                Description is required and must contain at least 10 characters.
+              </small>
+            }
+
+          </div>
+
+          <!-- Status: Edit only -->
+          @if (modalMode() === 'edit') {
+
+            <div class="modal-form-group full-width">
+
+              <label for="modalProjectStatus">
+                Project Status <span>*</span>
+              </label>
+
+              <select
+                id="modalProjectStatus"
+                formControlName="status">
+
+                @for (status of statuses; track status.value) {
+                  <option [ngValue]="status.value">
+                    {{ status.label }}
+                  </option>
+                }
+
+              </select>
+
+            </div>
+
+          }
+
+          <!-- Start Date -->
+          <div class="modal-form-group">
+
+            <label for="modalStartDate">
+              Start Date <span>*</span>
+            </label>
+
+            <input
+              id="modalStartDate"
+              type="date"
+              formControlName="startDate"
+              [class.invalid]="
+                projectForm.controls.startDate.invalid &&
+                projectForm.controls.startDate.touched
+              "
+            />
+
+            @if (
+              projectForm.controls.startDate.invalid &&
+              projectForm.controls.startDate.touched
+            ) {
+              <small>Please select a start date.</small>
+            }
+
+          </div>
+
+          <!-- End Date -->
+          <div class="modal-form-group">
+
+            <label for="modalEndDate">
+              End Date <span>*</span>
+            </label>
+
+            <input
+              id="modalEndDate"
+              type="date"
+              formControlName="endDate"
+              [min]="projectForm.controls.startDate.value"
+              [class.invalid]="
+                projectForm.controls.endDate.invalid &&
+                projectForm.controls.endDate.touched
+              "
+            />
+
+            @if (
+              projectForm.controls.endDate.invalid &&
+              projectForm.controls.endDate.touched
+            ) {
+              <small>Please select an end date.</small>
+            }
+
+          </div>
+
+        </div>
+
+      </form>
+
+    }
+
+    <!-- Project Details -->
+    @if (modalMode() === 'details' && selectedProject(); as project) {
+
+      <div class="project-detail-modal">
+
+        <div class="detail-overview">
+
+          <div class="detail-project-icon">
+            <i class="fa-solid fa-folder-open"></i>
+          </div>
+
+          <div>
+            <span class="detail-label">PROJECT</span>
+            <h2>{{ project.name }}</h2>
+
+            <span
+              class="status-badge"
+              [ngClass]="getStatusClass(project.status)">
+
+              {{ project.status }}
+
+            </span>
+          </div>
+
+        </div>
+
+        <div class="detail-section">
+
+          <h3>
+            <i class="fa-solid fa-align-left"></i>
+            Description
+          </h3>
+
+          <p class="detail-description">
+            {{ project.description || 'No description provided.' }}
+          </p>
+
+        </div>
+
+        <div class="detail-section">
+
+          <h3>
+            <i class="fa-solid fa-calendar-days"></i>
+            Project Timeline
+          </h3>
+
+          <div class="detail-grid">
+
+            <div class="detail-item">
+              <span class="detail-label">START DATE</span>
+              <strong>{{ formatDate(project.startDate) }}</strong>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">END DATE</span>
+              <strong>{{ formatDate(project.endDate) }}</strong>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">CREATED BY</span>
+              <strong>{{ project.createdByName || 'Unknown' }}</strong>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="detail-section">
+
+          <h3>
+            <i class="fa-solid fa-circle-info"></i>
+            Project Information
+          </h3>
+
+          <div class="detail-grid">
+
+            <div class="detail-item">
+              <span class="detail-label">PROJECT ID</span>
+              <strong class="detail-id">{{ project.id }}</strong>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">CREATOR ID</span>
+              <strong class="detail-id">{{ project.createdBy }}</strong>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    }
+
+  </div>
+
+  <!-- Modal Footer -->
+  <div modal-footer>
+
+    @if (modalMode() === 'details') {
+
+      <button
+        type="button"
+        class="modal-btn-cancel"
+        (click)="closeProjectModal()">
+
+        Close
+
+      </button>
+
+      <button
+        type="button"
+        class="modal-btn-primary"
+        (click)="editSelectedProject()">
+
+        <i class="fa-solid fa-pen-to-square"></i>
+        Edit Project
+
+      </button>
+
+    } @else {
+
+      <button
+        type="button"
+        class="modal-btn-cancel"
+        [disabled]="saving()"
+        (click)="closeProjectModal()">
+
+        Cancel
+
+      </button>
+
+      <button
+        type="button"
+        class="modal-btn-primary"
+        [disabled]="saving()"
+        (click)="saveProject()">
+
+        @if (saving()) {
+
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          Saving...
+
+        } @else if (modalMode() === 'create') {
+
+          <i class="fa-solid fa-plus"></i>
+          Create Project
+
+        } @else {
+
+          <i class="fa-solid fa-floppy-disk"></i>
+          Save Changes
+
+        }
+
+      </button>
+
+    }
+
+  </div>
+
+</app-modal>
+
+
+<!-- DELETE CONFIRMATION -->
+<app-confirm-dialog
+  [open]="showDeleteDialog()"
+  title="Delete Project"
+  [message]="
+    'Are you sure you want to delete ' +
+    (projectToDelete()?.name || 'this project') +
+    '? This action cannot be undone.'
+  "
+  confirmText="Delete Project"
+  confirmVariant="danger"
+  [loading]="deleting()"
+  (confirmed)="confirmDelete()"
+  (cancelled)="cancelDelete()"
+/>
