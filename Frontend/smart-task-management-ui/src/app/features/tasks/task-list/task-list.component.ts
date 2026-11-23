@@ -1,33 +1,71 @@
+
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import {
+  FormsModule,
+  ReactiveFormsModule,
+  FormBuilder,
+  Validators
+} from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { forkJoin, finalize } from 'rxjs';
+
+import { environment } from '../../../../environments/environment';
 
 import { TaskService } from '../../../core/services/task.service';
 import { ProjectService } from '../../../core/services/project.service';
 import { ProjectMemberService } from '../../../core/services/project-member.service';
 import { AuthService } from '../../../core/services/auth.service';
 
-import { Task } from '../../../core/models/task/task.model';
+import {
+  Task,
+  CreateTaskRequest,
+  ImproveDescriptionResponse,
+  TASK_PRIORITIES
+} from '../../../core/models/task/task.model';
+
 import { Project } from '../../../core/models/project/project.model';
 import { TeamMember } from '../../../core/models/team-member/team-member.model';
+
+import { AppModalComponent } from '../../../shared/components/app-modal/app-modal.component';
 
 type AssignmentFilter = 'all' | 'mine' | 'unassigned';
 
 @Component({
   selector: 'app-task-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, DatePipe],
+  imports: [
+    CommonModule,
+    RouterLink,
+    FormsModule,
+    ReactiveFormsModule,
+    DatePipe,
+    AppModalComponent
+  ],
   templateUrl: './task-list.component.html',
   styleUrl: './task-list.component.scss'
 })
 export class TaskListComponent implements OnInit {
+
   private readonly taskService = inject(TaskService);
   private readonly projectService = inject(ProjectService);
   private readonly projectMemberService = inject(ProjectMemberService);
   private readonly authService = inject(AuthService);
 
+private readonly fb = inject(FormBuilder);
+
+readonly createForm = this.fb.group({
+  projectId: ['', Validators.required],
+  title: ['', [Validators.required, Validators.maxLength(200)]],
+  description: ['', Validators.required],
+  priority: [2, Validators.required],
+  dueDate: ['', Validators.required]
+});  private readonly http = inject(HttpClient);
+
+  private readonly apiUrl = environment.apiUrl;
+
+  // Task and project data
   readonly tasks = signal<Task[]>([]);
   readonly projects = signal<Project[]>([]);
 
@@ -50,6 +88,42 @@ export class TaskListComponent implements OnInit {
 
   selectedUserId = '';
 
+  // Create Task modal state
+  readonly createModalOpen = signal(false);
+  readonly creatingTask = signal(false);
+  readonly improvingDescription = signal(false);
+
+  readonly createError = signal('');
+  readonly createSuccess = signal('');
+
+  readonly priorities = TASK_PRIORITIES;
+
+  // Create Task form
+  readonly createTaskForm = this.fb.nonNullable.group({
+    projectId: ['', Validators.required],
+
+    title: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(150)
+      ]
+    ],
+
+    description: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(10),
+        Validators.maxLength(3000)
+      ]
+    ],
+
+    priority: [2, Validators.required],
+    dueDate: ['', Validators.required]
+  });
+
   // Pagination
   pageNumber = 1;
   pageSize = 10;
@@ -64,8 +138,11 @@ export class TaskListComponent implements OnInit {
 
   // Dropdown filters
   selectedProjectId = '';
-  assignmentFilter: AssignmentFilter = this.authService.getRole() =='Admin'? 'all':'mine';
 
+  assignmentFilter: AssignmentFilter =
+    this.authService.getRole() === 'Admin' ? 'all' : 'mine';
+
+  // Permissions
   get canAssignTasks(): boolean {
     const role = this.authService.getRole();
 
@@ -75,18 +152,24 @@ export class TaskListComponent implements OnInit {
   get canUnassignTasks(): boolean {
     return this.canAssignTasks;
   }
- get canDeleteTasks(): boolean {
+
+  get canDeleteTasks(): boolean {
     return this.canAssignTasks;
   }
+
   get canEditTasks(): boolean {
     return this.canAssignTasks;
   }
+
   ngOnInit(): void {
     this.loadProjects();
     this.loadTasks();
   }
 
-  // Load all projects for the project dropdown
+  // ==========================================
+  // PROJECT LOADING
+  // ==========================================
+
   loadProjects(): void {
     this.projectsLoading.set(true);
     this.projectErrorMessage.set('');
@@ -97,6 +180,7 @@ export class TaskListComponent implements OnInit {
       sortBy: 'name',
       descending: false
     }).subscribe({
+
       next: firstPage => {
         const firstPageItems = firstPage.items ?? [];
 
@@ -121,36 +205,48 @@ export class TaskListComponent implements OnInit {
             })
           )
         ).subscribe({
+
           next: responses => {
             const allProjects = [
               ...firstPageItems,
-              ...responses.flatMap(response => response.items ?? [])
+              ...responses.flatMap(
+                response => response.items ?? []
+              )
             ];
 
             this.projects.set(allProjects);
             this.projectsLoading.set(false);
           },
+
           error: () => {
             this.projects.set(firstPageItems);
             this.projectsLoading.set(false);
+
             this.projectErrorMessage.set(
               'Some projects could not be loaded.'
             );
           }
+
         });
       },
+
       error: error => {
         this.projectsLoading.set(false);
+
         this.projectErrorMessage.set(
           error?.error?.message ||
           error?.message ||
           'Unable to load projects.'
         );
       }
+
     });
   }
 
-  // Load tasks using the selected filters
+  // ==========================================
+  // TASK LOADING
+  // ==========================================
+
   loadTasks(): void {
     this.loading.set(true);
     this.errorMessage.set('');
@@ -171,36 +267,195 @@ export class TaskListComponent implements OnInit {
         : this.taskService.getTasks(query);
 
     request.subscribe({
+
       next: response => {
         this.tasks.set(response.items ?? []);
         this.totalRecords.set(response.totalRecords ?? 0);
         this.totalPages.set(response.totalPages ?? 0);
         this.loading.set(false);
       },
+
       error: error => {
         this.loading.set(false);
+
         this.errorMessage.set(
           error?.error?.message ||
           error?.message ||
           'Unable to load tasks. Please try again.'
         );
       }
+
     });
   }
 
-  // Project dropdown change
+  // ==========================================
+  // CREATE TASK MODAL
+  // ==========================================
+
+  openCreateModal(): void {
+    if (!this.canAssignTasks) {
+      return;
+    }
+
+    this.createTaskForm.reset({
+      projectId: '',
+      title: '',
+      description: '',
+      priority: 2,
+      dueDate: ''
+    });
+
+    this.createError.set('');
+    this.createSuccess.set('');
+
+    this.createModalOpen.set(true);
+  }
+
+  closeCreateModal(): void {
+    if (this.creatingTask() || this.improvingDescription()) {
+      return;
+    }
+
+    this.createModalOpen.set(false);
+
+    this.createError.set('');
+    this.createSuccess.set('');
+
+    this.createTaskForm.reset({
+      projectId: '',
+      title: '',
+      description: '',
+      priority: 2,
+      dueDate: ''
+    });
+  }
+
+  // Improve task description using AI
+  improveTaskDescription(): void {
+    const description =
+      this.createTaskForm.controls.description.value.trim();
+
+    if (description.length < 10) {
+      this.createTaskForm.controls.description.markAsTouched();
+
+      this.createError.set(
+        'Enter at least 10 characters before improving the description.'
+      );
+
+      return;
+    }
+
+    this.improvingDescription.set(true);
+    this.createError.set('');
+    this.createSuccess.set('');
+
+    this.http.post<ImproveDescriptionResponse>(
+      `${this.apiUrl}/ai/improve-description`,
+      { description }
+    )
+    .pipe(
+      finalize(() => this.improvingDescription.set(false))
+    )
+    .subscribe({
+
+      next: response => {
+        this.createTaskForm.controls.description.setValue(
+          response.improvedDescription
+        );
+
+        this.createSuccess.set(
+          'Description improved successfully.'
+        );
+      },
+
+      error: error => {
+        this.createError.set(
+          error?.error?.message ||
+          'Unable to improve the description.'
+        );
+      }
+
+    });
+  }
+
+  // Save new task
+  saveTask(): void {
+    this.createTaskForm.markAllAsTouched();
+
+    this.createError.set('');
+    this.createSuccess.set('');
+
+    if (this.createTaskForm.invalid) {
+      return;
+    }
+
+    const values = this.createTaskForm.getRawValue();
+
+    const request: CreateTaskRequest = {
+      projectId: values.projectId,
+      title: values.title.trim(),
+      description: values.description.trim(),
+      priority: Number(values.priority),
+      dueDate: new Date(
+        `${values.dueDate}T12:00:00`
+      ).toISOString()
+    };
+
+    this.creatingTask.set(true);
+
+    this.taskService.createTask(request)
+      .pipe(
+        finalize(() => this.creatingTask.set(false))
+      )
+      .subscribe({
+
+        next: () => {
+          this.createModalOpen.set(false);
+
+          this.createTaskForm.reset({
+            projectId: '',
+            title: '',
+            description: '',
+            priority: 2,
+            dueDate: ''
+          });
+
+          this.createError.set('');
+          this.createSuccess.set('');
+
+          this.pageNumber = 1;
+          this.loadTasks();
+        },
+
+        error: error => {
+          this.createError.set(
+            error?.error?.message ||
+            error?.message ||
+            'Unable to create task. Please try again.'
+          );
+        }
+
+      });
+  }
+
+  // ==========================================
+  // FILTERS
+  // ==========================================
+
   onProjectFilterChange(): void {
     this.pageNumber = 1;
     this.loadTasks();
   }
 
-  // Assignment dropdown change
   onAssignmentFilterChange(): void {
     this.pageNumber = 1;
     this.loadTasks();
   }
 
-  // Search
+  // ==========================================
+  // SEARCH
+  // ==========================================
+
   search(): void {
     this.pageNumber = 1;
     this.appliedSearch = this.searchTerm.trim();
@@ -214,7 +469,10 @@ export class TaskListComponent implements OnInit {
     this.loadTasks();
   }
 
-  // Pagination
+  // ==========================================
+  // PAGINATION
+  // ==========================================
+
   changePage(page: number): void {
     if (page < 1 || page > this.totalPages()) {
       return;
@@ -230,7 +488,10 @@ export class TaskListComponent implements OnInit {
     this.loadTasks();
   }
 
-  // Sorting
+  // ==========================================
+  // SORTING
+  // ==========================================
+
   changeSort(field: string): void {
     if (this.sortBy === field) {
       this.descending = !this.descending;
@@ -243,7 +504,10 @@ export class TaskListComponent implements OnInit {
     this.loadTasks();
   }
 
-  // Open assignment modal and load project members
+  // ==========================================
+  // ASSIGN TASK MODAL
+  // ==========================================
+
   openAssignModal(task: Task): void {
     if (!this.canAssignTasks) {
       return;
@@ -251,13 +515,15 @@ export class TaskListComponent implements OnInit {
 
     this.selectedTask.set(task);
     this.selectedUserId = '';
+
     this.teamMembers.set([]);
     this.assignError.set('');
-    this.assignModalOpen.set(true);
 
+    this.assignModalOpen.set(true);
     this.membersLoading.set(true);
 
     this.projectMemberService.getMembers(task.projectId).subscribe({
+
       next: members => {
         const eligibleMembers = (members ?? []).filter(
           member =>
@@ -267,14 +533,17 @@ export class TaskListComponent implements OnInit {
         this.teamMembers.set(eligibleMembers);
         this.membersLoading.set(false);
       },
+
       error: error => {
         this.membersLoading.set(false);
+
         this.assignError.set(
           error?.error?.message ||
           error?.message ||
           'Unable to load project team members.'
         );
       }
+
     });
   }
 
@@ -292,19 +561,23 @@ export class TaskListComponent implements OnInit {
     this.taskService.assignTask(task.id, {
       userId: this.selectedUserId
     }).subscribe({
+
       next: () => {
         this.assigning.set(false);
         this.closeAssignModal();
         this.loadTasks();
       },
+
       error: error => {
         this.assigning.set(false);
+
         this.assignError.set(
           error?.error?.message ||
           error?.message ||
           'Failed to assign the task. Please try again.'
         );
       }
+
     });
   }
 
@@ -320,7 +593,10 @@ export class TaskListComponent implements OnInit {
     this.assignError.set('');
   }
 
-  // Unassign an existing task
+  // ==========================================
+  // UNASSIGN TASK
+  // ==========================================
+
   unassignTask(task: Task): void {
     if (!this.canUnassignTasks || !task.assignedToUserId) {
       return;
@@ -335,6 +611,7 @@ export class TaskListComponent implements OnInit {
     }
 
     this.taskService.unassignTask(task.id).subscribe({
+
       next: () => {
         if (this.tasks().length === 1 && this.pageNumber > 1) {
           this.pageNumber--;
@@ -342,6 +619,7 @@ export class TaskListComponent implements OnInit {
 
         this.loadTasks();
       },
+
       error: error => {
         this.errorMessage.set(
           error?.error?.message ||
@@ -349,10 +627,14 @@ export class TaskListComponent implements OnInit {
           'Failed to unassign task.'
         );
       }
+
     });
   }
 
-  // Delete task
+  // ==========================================
+  // DELETE TASK
+  // ==========================================
+
   deleteTask(task: Task): void {
     const confirmed = window.confirm(
       `Are you sure you want to delete "${task.title}"?`
@@ -363,6 +645,7 @@ export class TaskListComponent implements OnInit {
     }
 
     this.taskService.deleteTask(task.id).subscribe({
+
       next: () => {
         if (this.tasks().length === 1 && this.pageNumber > 1) {
           this.pageNumber--;
@@ -370,42 +653,58 @@ export class TaskListComponent implements OnInit {
 
         this.loadTasks();
       },
+
       error: error => {
         this.errorMessage.set(
           error?.error?.message ||
           'Failed to delete task.'
         );
       }
+
     });
   }
 
-  // Status styling
+  // ==========================================
+  // STATUS STYLING
+  // ==========================================
+
   getStatusClass(status: string): string {
     switch (status?.toLowerCase()) {
       case 'todo':
         return 'status-todo';
+
       case 'inprogress':
         return 'status-progress';
+
       case 'completed':
         return 'status-completed';
+
       case 'cancelled':
         return 'status-cancelled';
+
       default:
         return 'status-default';
     }
   }
 
-  // Priority styling
+  // ==========================================
+  // PRIORITY STYLING
+  // ==========================================
+
   getPriorityClass(priority: string): string {
     switch (priority?.toLowerCase()) {
       case 'low':
         return 'priority-low';
+
       case 'medium':
         return 'priority-medium';
+
       case 'high':
         return 'priority-high';
+
       case 'critical':
         return 'priority-critical';
+
       default:
         return 'priority-default';
     }
@@ -422,6 +721,10 @@ export class TaskListComponent implements OnInit {
 
     return status || 'Unknown';
   }
+
+  // ==========================================
+  // PAGINATION DISPLAY
+  // ==========================================
 
   get pageStart(): number {
     return this.totalRecords() === 0

@@ -1,19 +1,26 @@
+
 <div class="task-page">
 
+  <!-- PAGE HEADER -->
   <div class="page-header">
     <div>
       <span class="eyebrow">WORKSPACE</span>
       <h1>My Tasks</h1>
       <p>Manage, organize and track your team's tasks.</p>
     </div>
-@if (canAssignTasks) {
-    <a routerLink="/tasks/create" class="btn-create">
-      <i class="fa-solid fa-plus"></i>
-      Create Task
-    </a>
-}
+
+    @if (canAssignTasks) {
+      <button
+        type="button"
+        class="btn-create"
+        (click)="openCreateModal()">
+        <i class="fa-solid fa-plus"></i>
+        Create Task
+      </button>
+    }
   </div>
 
+  <!-- SUMMARY -->
   <div class="summary-card">
     <div class="summary-icon">
       <i class="fa-solid fa-list-check"></i>
@@ -24,6 +31,7 @@
     </div>
   </div>
 
+  <!-- TASK LIST -->
   <section class="task-card">
 
     <div class="card-header">
@@ -32,13 +40,16 @@
         <p>View and manage your tasks.</p>
       </div>
 
-      <button class="btn-refresh" type="button" (click)="loadTasks()">
+      <button
+        class="btn-refresh"
+        type="button"
+        (click)="loadTasks()">
         <i class="fa-solid fa-rotate-right"></i>
         Refresh
       </button>
     </div>
 
-    <!-- SEARCH AND FILTER TOOLBAR -->
+    <!-- SEARCH AND FILTERS -->
     <div class="toolbar">
 
       <form class="search-form" (ngSubmit)="search()">
@@ -46,8 +57,7 @@
           type="text"
           name="searchTerm"
           [(ngModel)]="searchTerm"
-          placeholder="Search tasks by title or description..."
-        />
+          placeholder="Search tasks by title or description..." />
 
         <button type="submit" class="btn-search">
           <i class="fa-solid fa-magnifying-glass"></i>
@@ -66,7 +76,6 @@
 
       <div class="filter-controls">
 
-        <!-- PROJECT FILTER -->
         <div class="filter-group">
           <label for="projectFilter">Project</label>
 
@@ -83,11 +92,9 @@
                 {{ project.name }}
               </option>
             }
-
           </select>
         </div>
 
-        <!-- ASSIGNMENT FILTER -->
         <div class="filter-group">
           <label for="assignmentFilter">Assignment</label>
 
@@ -100,11 +107,9 @@
             <option value="all">All Tasks</option>
             <option value="mine">Assigned to Me</option>
             <option value="unassigned">Unassigned Tasks</option>
-
           </select>
         </div>
 
-        <!-- PAGE SIZE -->
         <div class="page-size">
           <label for="pageSize">Show</label>
 
@@ -117,13 +122,13 @@
             <option [ngValue]="10">10</option>
             <option [ngValue]="20">20</option>
             <option [ngValue]="50">50</option>
-
           </select>
         </div>
 
       </div>
     </div>
 
+    <!-- PROJECT ERROR -->
     @if (projectErrorMessage()) {
       <div class="error-message">
         <i class="fa-solid fa-circle-exclamation"></i>
@@ -132,6 +137,7 @@
       </div>
     }
 
+    <!-- TASK ERROR -->
     @if (errorMessage()) {
       <div class="error-message">
         <i class="fa-solid fa-circle-exclamation"></i>
@@ -140,6 +146,7 @@
       </div>
     }
 
+    <!-- LOADING -->
     @if (loading()) {
 
       <div class="loading-state">
@@ -149,6 +156,7 @@
 
     } @else if (tasks().length > 0) {
 
+      <!-- TASK TABLE -->
       <div class="table-responsive">
         <table class="task-table">
 
@@ -246,24 +254,26 @@
                       title="View task">
                       <i class="fa-solid fa-eye"></i>
                     </a>
-                @if (canEditTasks || task.assignedToUserId) {
-                    <a
-                      class="action-btn edit-btn"
-                      [routerLink]="['/tasks/edit', task.id]"
-                      title="Edit task">
-                      <i class="fa-solid fa-pen"></i>
-                    </a>
-                }
-                @if (canDeleteTasks || task.assignedToUserId) {
 
-                    <button
-                      type="button"
-                      class="action-btn delete-btn"
-                      title="Delete task"
-                      (click)="deleteTask(task)">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
-                }
+                    @if (canEditTasks || task.assignedToUserId) {
+                      <a
+                        class="action-btn edit-btn"
+                        [routerLink]="['/tasks/edit', task.id]"
+                        title="Edit task">
+                        <i class="fa-solid fa-pen"></i>
+                      </a>
+                    }
+
+                    @if (canDeleteTasks || task.assignedToUserId) {
+                      <button
+                        type="button"
+                        class="action-btn delete-btn"
+                        title="Delete task"
+                        (click)="deleteTask(task)">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    }
+
                   </div>
                 </td>
 
@@ -274,6 +284,7 @@
         </table>
       </div>
 
+      <!-- PAGINATION -->
       <div class="table-footer">
 
         <span>
@@ -311,6 +322,7 @@
 
     } @else if (!errorMessage()) {
 
+      <!-- EMPTY STATE -->
       <div class="empty-state">
         <div class="empty-icon">
           <i class="fa-solid fa-clipboard-list"></i>
@@ -329,12 +341,16 @@
             No tasks are available for the selected project.
           }
         </p>
-@if (canAssignTasks) {
-        <a routerLink="/tasks/create" class="btn-create">
-          <i class="fa-solid fa-plus"></i>
-          Create Task
-        </a>
-    }
+
+        @if (canAssignTasks) {
+          <button
+            type="button"
+            class="btn-create"
+            (click)="openCreateModal()">
+            <i class="fa-solid fa-plus"></i>
+            Create Task
+          </button>
+        }
       </div>
 
     }
@@ -343,7 +359,226 @@
 </div>
 
 
-<!-- ASSIGN TASK MODAL -->
+<!-- =========================================
+     CREATE TASK MODAL
+========================================= -->
+
+<app-modal
+  [open]="createModalOpen()"
+  title="Create New Task"
+  subtitle="Add a task to one of your projects."
+  size="lg"
+  [closeOnBackdrop]="!creatingTask() && !improvingDescription()"
+  [closeOnEscape]="!creatingTask() && !improvingDescription()"
+  (closed)="closeCreateModal()">
+
+  <!-- MODAL BODY -->
+  <div modal-body>
+
+    <form
+      id="createTaskForm"
+      [formGroup]="createForm"
+      class="task-modal-form"
+      novalidate>
+
+      <!-- ERROR MESSAGE -->
+      @if (createError()) {
+        <div class="error-message">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          {{ createError() }}
+        </div>
+      }
+
+      <!-- SUCCESS MESSAGE -->
+      @if (createSuccess()) {
+        <div class="success-message">
+          <i class="fa-solid fa-circle-check"></i>
+          {{ createSuccess() }}
+        </div>
+      }
+
+      <!-- PROJECT -->
+      <div class="form-group">
+        <label for="createProjectId">
+          Project <span class="required">*</span>
+        </label>
+
+        <select
+          id="createProjectId"
+          formControlName="projectId">
+
+          <option value="">Select a project</option>
+
+          @for (project of projects(); track project.id) {
+            <option [value]="project.id">
+              {{ project.name }}
+            </option>
+          }
+
+        </select>
+
+        @if (
+          createForm.get('projectId')?.touched &&
+          createForm.get('projectId')?.invalid
+        ) {
+          <small class="field-error">
+            Please select a project.
+          </small>
+        }
+      </div>
+
+      <!-- TITLE -->
+      <div class="form-group">
+        <label for="createTaskTitle">
+          Task Title <span class="required">*</span>
+        </label>
+
+        <input
+          id="createTaskTitle"
+          type="text"
+          formControlName="title"
+          placeholder="Enter task title" />
+
+        @if (
+          createForm.get('title')?.touched &&
+          createForm.get('title')?.invalid
+        ) {
+          <small class="field-error">
+            Task title is required.
+          </small>
+        }
+      </div>
+
+      <!-- DESCRIPTION -->
+      <div class="form-group">
+
+        <div class="label-with-action">
+          <label for="createTaskDescription">
+            Description <span class="required">*</span>
+          </label>
+
+          <button
+            type="button"
+            class="btn-ai-improve"
+            [disabled]="
+              improvingDescription() ||
+              creatingTask() ||
+              !createForm.get('description')?.value?.trim()
+            "
+            (click)="improveTaskDescription()">
+
+            @if (improvingDescription()) {
+              <i class="fa-solid fa-spinner fa-spin"></i>
+              Improving...
+            } @else {
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              Improve with AI
+            }
+
+          </button>
+        </div>
+
+        <textarea
+          id="createTaskDescription"
+          rows="5"
+          formControlName="description"
+          placeholder="Describe the task, expected outcome and requirements...">
+        </textarea>
+
+        @if (
+          createForm.get('description')?.touched &&
+          createForm.get('description')?.invalid
+        ) {
+          <small class="field-error">
+            Task description is required.
+          </small>
+        }
+
+      </div>
+
+      <!-- PRIORITY AND DUE DATE -->
+      <div class="form-row">
+
+        <div class="form-group">
+          <label for="createTaskPriority">
+            Priority <span class="required">*</span>
+          </label>
+
+          <select
+            id="createTaskPriority"
+            formControlName="priority">
+
+            @for (priority of priorities; track priority.value) {
+              <option [ngValue]="priority.value">
+                {{ priority.label }}
+              </option>
+            }
+
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="createTaskDueDate">
+            Due Date <span class="required">*</span>
+          </label>
+
+          <input
+            id="createTaskDueDate"
+            type="date"
+            formControlName="dueDate" />
+
+          @if (
+            createForm.get('dueDate')?.touched &&
+            createForm.get('dueDate')?.invalid
+          ) {
+            <small class="field-error">
+              Please select a due date.
+            </small>
+          }
+        </div>
+
+      </div>
+
+    </form>
+
+  </div>
+
+  <!-- MODAL FOOTER -->
+  <div modal-footer class="modal-footer-actions">
+
+  <button
+    type="button"
+    class="btn-modal-cancel"
+    [disabled]="creatingTask() || improvingDescription()"
+    (click)="closeCreateModal()">
+    Cancel
+  </button>
+
+  <button
+    type="submit"
+    form="createTaskForm"
+    class="btn-modal-primary"
+    [disabled]="creatingTask() || improvingDescription()"
+(click)="saveTask()">
+    @if (creatingTask()) {
+      <i class="fa-solid fa-spinner fa-spin"></i>
+      Creating...
+    } @else {
+      <i class="fa-solid fa-plus"></i>
+      Create Task
+    }
+
+  </button>
+
+</div>
+
+</app-modal>
+
+
+<!-- =========================================
+     ASSIGN TASK MODAL
+========================================= -->
+
 @if (assignModalOpen()) {
 
   <div class="assign-modal-backdrop" (click)="closeAssignModal()">
@@ -352,6 +587,7 @@
       class="assign-modal"
       (click)="$event.stopPropagation()">
 
+      <!-- HEADER -->
       <div class="assign-modal-header">
         <div>
           <span class="eyebrow">TASK MANAGEMENT</span>
@@ -411,6 +647,7 @@
               </div>
 
             }
+
           </div>
 
           @if (assignError()) {
@@ -422,6 +659,7 @@
 
         </div>
 
+        <!-- ASSIGN FOOTER -->
         <div class="assign-modal-footer">
 
           <button
