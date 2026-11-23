@@ -1,4 +1,3 @@
-
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import {
@@ -103,6 +102,11 @@ export class TaskListComponent implements OnInit {
     return this.canAssignTasks;
   }
 
+  get canUpdateTasks(): boolean {
+    const role = this.authService.getRole();
+    return role === 'Admin' || role === 'ProjectManager';
+  }
+
   // ==========================================
   // CREATE TASK MODAL
   // ==========================================
@@ -145,6 +149,9 @@ export class TaskListComponent implements OnInit {
   readonly viewLoading = signal(false);
   readonly viewError = signal('');
   readonly viewSuccess = signal('');
+  readonly viewStatusUpdating = signal(false);
+
+  selectedStatus = 1;
 
   // ==========================================
   // EDIT TASK MODAL
@@ -153,7 +160,10 @@ export class TaskListComponent implements OnInit {
   readonly editModalOpen = signal(false);
   readonly editLoading = signal(false);
   readonly editingTask = signal(false);
+  readonly editImprovingDescription = signal(false);
+
   readonly editError = signal('');
+  readonly editSuccess = signal('');
 
   private taskToEditId = '';
 
@@ -228,7 +238,7 @@ export class TaskListComponent implements OnInit {
   selectedProjectId = '';
 
   assignmentFilter: AssignmentFilter =
-    this.authService.getRole() === 'Admin' ? 'all' : 'mine';
+    this.authService.getRole() === 'Admin' ? 'all' : this.authService.getRole() === 'ProjectManager'? 'all': 'mine';
 
   ngOnInit(): void {
     this.loadProjects();
@@ -485,6 +495,8 @@ export class TaskListComponent implements OnInit {
     this.viewTask.set(null);
     this.viewError.set('');
     this.viewSuccess.set('');
+    this.selectedStatus = 1;
+
     this.viewLoading.set(true);
     this.viewModalOpen.set(true);
 
@@ -493,6 +505,7 @@ export class TaskListComponent implements OnInit {
     ).subscribe({
       next: latestTask => {
         this.viewTask.set(latestTask);
+        this.selectedStatus = this.getStatusValue(latestTask.status);
       },
       error: error => {
         this.viewError.set(
@@ -505,10 +518,85 @@ export class TaskListComponent implements OnInit {
   }
 
   closeViewModal(): void {
+    if (this.viewStatusUpdating()) {
+      return;
+    }
+
     this.viewModalOpen.set(false);
     this.viewTask.set(null);
     this.viewError.set('');
     this.viewSuccess.set('');
+  }
+
+  updateViewTaskStatus(): void {
+    const currentTask = this.viewTask();
+
+    if (
+      !currentTask ||
+      this.viewStatusUpdating() ||
+      (!this.canUpdateTasks && !currentTask.assignedToUserId)
+    ) {
+      return;
+    }
+
+    if (this.selectedStatus === this.getStatusValue(currentTask.status)) {
+      return;
+    }
+
+    this.viewStatusUpdating.set(true);
+    this.viewError.set('');
+    this.viewSuccess.set('');
+
+    this.taskService.updateStatus(
+      currentTask.id,
+      { status: this.selectedStatus }
+    ).pipe(
+      finalize(() => this.viewStatusUpdating.set(false))
+    ).subscribe({
+      next: () => {
+        const updatedStatus = this.getStatusName(this.selectedStatus);
+
+        this.viewTask.set({
+          ...currentTask,
+          status: updatedStatus
+        });
+
+        this.viewSuccess.set(
+          'Task status updated successfully.'
+        );
+
+        this.loadTasks();
+      },
+      error: error => {
+        this.viewError.set(
+          error?.error?.message ||
+          error?.message ||
+          'Unable to update task status.'
+        );
+      }
+    });
+  }
+
+  getStatusValue(status: string): number {
+    const values: Record<string, number> = {
+      Todo: 1,
+      InProgress: 2,
+      Completed: 3,
+      Cancelled: 4
+    };
+
+    return values[status] ?? 1;
+  }
+
+  private getStatusName(statusValue: number): string {
+    const values: Record<number, string> = {
+      1: 'Todo',
+      2: 'InProgress',
+      3: 'Completed',
+      4: 'Cancelled'
+    };
+
+    return values[statusValue] ?? 'Todo';
   }
 
   // ==========================================
@@ -521,7 +609,9 @@ export class TaskListComponent implements OnInit {
     }
 
     this.taskToEditId = task.id;
+
     this.editError.set('');
+    this.editSuccess.set('');
 
     this.editTaskForm.reset({
       title: '',
@@ -555,22 +645,71 @@ export class TaskListComponent implements OnInit {
   }
 
   closeEditModal(): void {
-    if (this.editingTask()) {
+    if (this.editingTask() || this.editImprovingDescription()) {
       return;
     }
 
     this.editModalOpen.set(false);
     this.editError.set('');
+    this.editSuccess.set('');
     this.taskToEditId = '';
   }
 
+  improveEditTaskDescription(): void {
+    const description =
+      this.editTaskForm.controls.description.value.trim();
+
+    if (description.length < 10) {
+      this.editTaskForm.controls.description.markAsTouched();
+      this.editError.set(
+        'Enter at least 10 characters before improving the description.'
+      );
+      return;
+    }
+
+    this.editImprovingDescription.set(true);
+    this.editError.set('');
+    this.editSuccess.set('');
+
+    this.http.post<ImproveDescriptionResponse>(
+      `${this.apiUrl}/ai/improve-description`,
+      { description }
+    ).pipe(
+      finalize(() => this.editImprovingDescription.set(false))
+    ).subscribe({
+      next: response => {
+        const descriptionControl =
+          this.editTaskForm.controls.description;
+
+        descriptionControl.setValue(response.improvedDescription);
+        descriptionControl.markAsDirty();
+
+        this.editSuccess.set(
+          'Description improved successfully. Save the task to apply the changes.'
+        );
+      },
+      error: error => {
+        this.editError.set(
+          error?.error?.message ||
+          error?.message ||
+          'Unable to improve the description.'
+        );
+      }
+    });
+  }
+
   saveEditedTask(): void {
-    if (this.editingTask() || this.editLoading()) {
+    if (
+      this.editingTask() ||
+      this.editLoading() ||
+      this.editImprovingDescription()
+    ) {
       return;
     }
 
     this.editTaskForm.markAllAsTouched();
     this.editError.set('');
+    this.editSuccess.set('');
 
     if (this.editTaskForm.invalid || !this.taskToEditId) {
       return;
