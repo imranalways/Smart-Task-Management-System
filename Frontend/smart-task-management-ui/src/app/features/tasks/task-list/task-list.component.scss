@@ -951,3 +951,37 @@
     }
   }
 }
+/* Create task modal layout improvements */
+
+.task-modal-form {
+  width: 100%;
+  max-width: 100%;
+}
+
+:host ::ng-deep app-modal .modal-dialog.modal-lg {
+  width: min(760px, calc(100vw - 32px));
+}
+
+:host ::ng-deep app-modal .modal-content {
+  max-height: calc(90vh - 155px);
+  overflow-y: auto;
+}
+
+:host ::ng-deep app-modal .modal-footer {
+  flex-shrink: 0;
+}
+
+@media (max-width: 576px) {
+  :host ::ng-deep app-modal .modal-overlay {
+    padding: 8px;
+  }
+
+  :host ::ng-deep app-modal .modal-dialog {
+    width: 100%;
+    max-height: calc(100dvh - 16px);
+  }
+
+  :host ::ng-deep app-modal .modal-content {
+    max-height: calc(100dvh - 175px);
+  }
+}

@@ -53,15 +53,8 @@ export class TaskListComponent implements OnInit {
   private readonly projectMemberService = inject(ProjectMemberService);
   private readonly authService = inject(AuthService);
 
-private readonly fb = inject(FormBuilder);
-
-readonly createForm = this.fb.group({
-  projectId: ['', Validators.required],
-  title: ['', [Validators.required, Validators.maxLength(200)]],
-  description: ['', Validators.required],
-  priority: [2, Validators.required],
-  dueDate: ['', Validators.required]
-});  private readonly http = inject(HttpClient);
+  private readonly fb = inject(FormBuilder);
+  private readonly http = inject(HttpClient);
 
   private readonly apiUrl = environment.apiUrl;
 
