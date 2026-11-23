@@ -1,7 +1,6 @@
 
 <div class="task-page">
 
-  <!-- PAGE HEADER -->
   <div class="page-header">
     <div>
       <span class="eyebrow">WORKSPACE</span>
@@ -10,17 +9,13 @@
     </div>
 
     @if (canAssignTasks) {
-      <button
-        type="button"
-        class="btn-create"
-        (click)="openCreateModal()">
+      <button type="button" class="btn-create" (click)="openCreateModal()">
         <i class="fa-solid fa-plus"></i>
         Create Task
       </button>
     }
   </div>
 
-  <!-- SUMMARY -->
   <div class="summary-card">
     <div class="summary-icon">
       <i class="fa-solid fa-list-check"></i>
@@ -31,7 +26,6 @@
     </div>
   </div>
 
-  <!-- TASK LIST -->
   <section class="task-card">
 
     <div class="card-header">
@@ -40,10 +34,7 @@
         <p>View and manage your tasks.</p>
       </div>
 
-      <button
-        class="btn-refresh"
-        type="button"
-        (click)="loadTasks()">
+      <button class="btn-refresh" type="button" (click)="loadTasks()">
         <i class="fa-solid fa-rotate-right"></i>
         Refresh
       </button>
@@ -65,10 +56,7 @@
         </button>
 
         @if (appliedSearch) {
-          <button
-            type="button"
-            class="btn-clear"
-            (click)="clearSearch()">
+          <button type="button" class="btn-clear" (click)="clearSearch()">
             Clear
           </button>
         }
@@ -78,7 +66,6 @@
 
         <div class="filter-group">
           <label for="projectFilter">Project</label>
-
           <select
             id="projectFilter"
             [(ngModel)]="selectedProjectId"
@@ -86,18 +73,14 @@
             (ngModelChange)="onProjectFilterChange()">
 
             <option value="">All Projects</option>
-
             @for (project of projects(); track project.id) {
-              <option [value]="project.id">
-                {{ project.name }}
-              </option>
+              <option [value]="project.id">{{ project.name }}</option>
             }
           </select>
         </div>
 
         <div class="filter-group">
           <label for="assignmentFilter">Assignment</label>
-
           <select
             id="assignmentFilter"
             [(ngModel)]="assignmentFilter"
@@ -112,7 +95,6 @@
 
         <div class="page-size">
           <label for="pageSize">Show</label>
-
           <select
             id="pageSize"
             [ngModel]="pageSize"
@@ -128,7 +110,6 @@
       </div>
     </div>
 
-    <!-- PROJECT ERROR -->
     @if (projectErrorMessage()) {
       <div class="error-message">
         <i class="fa-solid fa-circle-exclamation"></i>
@@ -137,7 +118,6 @@
       </div>
     }
 
-    <!-- TASK ERROR -->
     @if (errorMessage()) {
       <div class="error-message">
         <i class="fa-solid fa-circle-exclamation"></i>
@@ -146,17 +126,13 @@
       </div>
     }
 
-    <!-- LOADING -->
     @if (loading()) {
-
       <div class="loading-state">
         <i class="fa-solid fa-spinner fa-spin"></i>
         <span>Loading tasks...</span>
       </div>
-
     } @else if (tasks().length > 0) {
 
-      <!-- TASK TABLE -->
       <div class="table-responsive">
         <table class="task-table">
 
@@ -164,22 +140,17 @@
             <tr>
               <th>
                 <button type="button" (click)="changeSort('title')">
-                  TASK
-                  <i class="fa-solid fa-sort"></i>
+                  TASK <i class="fa-solid fa-sort"></i>
                 </button>
               </th>
-
               <th>STATUS</th>
               <th>PRIORITY</th>
               <th>ASSIGNED TO</th>
-
               <th>
                 <button type="button" (click)="changeSort('dueDate')">
-                  DUE DATE
-                  <i class="fa-solid fa-sort"></i>
+                  DUE DATE <i class="fa-solid fa-sort"></i>
                 </button>
               </th>
-
               <th class="text-center">ACTIONS</th>
             </tr>
           </thead>
@@ -187,13 +158,11 @@
           <tbody>
             @for (task of tasks(); track task.id) {
               <tr>
-
                 <td>
                   <div class="task-name">
                     <div class="task-icon">
                       <i class="fa-solid fa-list-check"></i>
                     </div>
-
                     <div>
                       <strong>{{ task.title }}</strong>
                       <small>{{ task.description }}</small>
@@ -202,28 +171,19 @@
                 </td>
 
                 <td>
-                  <span
-                    class="status-badge"
-                    [ngClass]="getStatusClass(task.status)">
+                  <span class="status-badge" [ngClass]="getStatusClass(task.status)">
                     {{ formatStatus(task.status) }}
                   </span>
                 </td>
 
                 <td>
-                  <span
-                    class="priority-badge"
-                    [ngClass]="getPriorityClass(task.priority)">
+                  <span class="priority-badge" [ngClass]="getPriorityClass(task.priority)">
                     {{ task.priority }}
                   </span>
                 </td>
 
-                <td>
-                  {{ task.assignedToUserName || 'Unassigned' }}
-                </td>
-
-                <td>
-                  {{ task.dueDate | date:'MMM d, yyyy' }}
-                </td>
+                <td>{{ task.assignedToUserName || 'Unassigned' }}</td>
+                <td>{{ task.dueDate | date:'MMM d, yyyy' }}</td>
 
                 <td>
                   <div class="actions">
@@ -248,20 +208,22 @@
                       </button>
                     }
 
-                    <a
+                    <button
+                      type="button"
                       class="action-btn view-btn"
-                      [routerLink]="['/tasks/details', task.id]"
-                      title="View task">
+                      title="View task"
+                      (click)="openViewModal(task)">
                       <i class="fa-solid fa-eye"></i>
-                    </a>
+                    </button>
 
                     @if (canEditTasks || task.assignedToUserId) {
-                      <a
+                      <button
+                        type="button"
                         class="action-btn edit-btn"
-                        [routerLink]="['/tasks/edit', task.id]"
-                        title="Edit task">
+                        title="Edit task"
+                        (click)="openEditModal(task)">
                         <i class="fa-solid fa-pen"></i>
-                      </a>
+                      </button>
                     }
 
                     @if (canDeleteTasks || task.assignedToUserId) {
@@ -276,24 +238,20 @@
 
                   </div>
                 </td>
-
               </tr>
             }
           </tbody>
-
         </table>
       </div>
 
       <!-- PAGINATION -->
       <div class="table-footer">
-
         <span>
           Showing <strong>{{ pageStart }} - {{ pageEnd }}</strong>
           of <strong>{{ totalRecords() }}</strong> tasks
         </span>
 
         <div class="pagination">
-
           <button
             type="button"
             [disabled]="pageNumber === 1"
@@ -316,20 +274,17 @@
             (click)="changePage(pageNumber + 1)">
             <i class="fa-solid fa-chevron-right"></i>
           </button>
-
         </div>
       </div>
 
     } @else if (!errorMessage()) {
 
-      <!-- EMPTY STATE -->
       <div class="empty-state">
         <div class="empty-icon">
           <i class="fa-solid fa-clipboard-list"></i>
         </div>
 
         <h3>No tasks found</h3>
-
         <p>
           @if (appliedSearch) {
             Try a different search term.
@@ -343,16 +298,12 @@
         </p>
 
         @if (canAssignTasks) {
-          <button
-            type="button"
-            class="btn-create"
-            (click)="openCreateModal()">
+          <button type="button" class="btn-create" (click)="openCreateModal()">
             <i class="fa-solid fa-plus"></i>
             Create Task
           </button>
         }
       </div>
-
     }
 
   </section>
@@ -372,9 +323,7 @@
   [closeOnEscape]="!creatingTask() && !improvingDescription()"
   (closed)="closeCreateModal()">
 
-  <!-- MODAL BODY -->
   <div modal-body>
-
     <form
       id="createTaskForm"
       [formGroup]="createTaskForm"
@@ -382,7 +331,6 @@
       (ngSubmit)="saveTask()"
       novalidate>
 
-      <!-- ERROR MESSAGE -->
       @if (createError()) {
         <div class="error-message">
           <i class="fa-solid fa-circle-exclamation"></i>
@@ -390,7 +338,6 @@
         </div>
       }
 
-      <!-- SUCCESS MESSAGE -->
       @if (createSuccess()) {
         <div class="success-message">
           <i class="fa-solid fa-circle-check"></i>
@@ -398,74 +345,40 @@
         </div>
       }
 
-      <!-- PROJECT -->
       <div class="form-group">
-        <label for="createProjectId">
-          Project <span class="required">*</span>
-        </label>
-
-        <select
-          id="createProjectId"
-          formControlName="projectId">
-
+        <label for="createProjectId">Project <span class="required">*</span></label>
+        <select id="createProjectId" formControlName="projectId">
           <option value="">Select a project</option>
-
           @for (project of projects(); track project.id) {
-            <option [value]="project.id">
-              {{ project.name }}
-            </option>
+            <option [value]="project.id">{{ project.name }}</option>
           }
-
         </select>
 
-        @if (
-          createTaskForm.get('projectId')?.touched &&
-          createTaskForm.get('projectId')?.invalid
-        ) {
-          <small class="field-error">
-            Please select a project.
-          </small>
+        @if (createTaskForm.controls.projectId.touched && createTaskForm.controls.projectId.invalid) {
+          <small class="field-error">Please select a project.</small>
         }
       </div>
 
-      <!-- TITLE -->
       <div class="form-group">
-        <label for="createTaskTitle">
-          Task Title <span class="required">*</span>
-        </label>
-
+        <label for="createTaskTitle">Task Title <span class="required">*</span></label>
         <input
           id="createTaskTitle"
           type="text"
           formControlName="title"
           placeholder="Enter task title" />
 
-        @if (
-          createTaskForm.get('title')?.touched &&
-          createTaskForm.get('title')?.invalid
-        ) {
-          <small class="field-error">
-            Task title is required.
-          </small>
+        @if (createTaskForm.controls.title.touched && createTaskForm.controls.title.invalid) {
+          <small class="field-error">Task title must contain 3–150 characters.</small>
         }
       </div>
 
-      <!-- DESCRIPTION -->
       <div class="form-group">
-
         <div class="label-with-action">
-          <label for="createTaskDescription">
-            Description <span class="required">*</span>
-          </label>
-
+          <label for="createTaskDescription">Description <span class="required">*</span></label>
           <button
             type="button"
             class="btn-ai-improve"
-            [disabled]="
-              improvingDescription() ||
-              creatingTask() ||
-              !createTaskForm.get('description')?.value?.trim()
-            "
+            [disabled]="improvingDescription() || creatingTask() || !createTaskForm.controls.description.value.trim()"
             (click)="improveTaskDescription()">
 
             @if (improvingDescription()) {
@@ -475,7 +388,6 @@
               <i class="fa-solid fa-wand-magic-sparkles"></i>
               Improve with AI
             }
-
           </button>
         </div>
 
@@ -486,94 +398,292 @@
           placeholder="Describe the task, expected outcome and requirements...">
         </textarea>
 
-        @if (
-          createTaskForm.get('description')?.touched &&
-          createTaskForm.get('description')?.invalid
-        ) {
-          <small class="field-error">
-            Task description is required.
-          </small>
+        @if (createTaskForm.controls.description.touched && createTaskForm.controls.description.invalid) {
+          <small class="field-error">Description must contain 10–3000 characters.</small>
         }
-
       </div>
 
-      <!-- PRIORITY AND DUE DATE -->
       <div class="form-row">
-
         <div class="form-group">
-          <label for="createTaskPriority">
-            Priority <span class="required">*</span>
-          </label>
-
-          <select
-            id="createTaskPriority"
-            formControlName="priority">
-
+          <label for="createTaskPriority">Priority <span class="required">*</span></label>
+          <select id="createTaskPriority" formControlName="priority">
             @for (priority of priorities; track priority.value) {
-              <option [ngValue]="priority.value">
-                {{ priority.label }}
-              </option>
+              <option [ngValue]="priority.value">{{ priority.label }}</option>
             }
-
           </select>
         </div>
 
         <div class="form-group">
-          <label for="createTaskDueDate">
-            Due Date <span class="required">*</span>
-          </label>
+          <label for="createTaskDueDate">Due Date <span class="required">*</span></label>
+          <input id="createTaskDueDate" type="date" formControlName="dueDate" />
 
-          <input
-            id="createTaskDueDate"
-            type="date"
-            formControlName="dueDate" />
-
-          @if (
-            createTaskForm.get('dueDate')?.touched &&
-            createTaskForm.get('dueDate')?.invalid
-          ) {
-            <small class="field-error">
-              Please select a due date.
-            </small>
+          @if (createTaskForm.controls.dueDate.touched && createTaskForm.controls.dueDate.invalid) {
+            <small class="field-error">Please select a due date.</small>
           }
         </div>
-
       </div>
-
     </form>
-
   </div>
 
-  <!-- MODAL FOOTER -->
   <div modal-footer class="modal-footer-actions">
+    <button
+      type="button"
+      class="btn-modal-cancel"
+      [disabled]="creatingTask() || improvingDescription()"
+      (click)="closeCreateModal()">
+      Cancel
+    </button>
 
+    <button
+      type="submit"
+      form="createTaskForm"
+      class="btn-modal-primary"
+      [disabled]="creatingTask() || improvingDescription()">
+
+      @if (creatingTask()) {
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        Creating...
+      } @else {
+        <i class="fa-solid fa-plus"></i>
+        Create Task
+      }
+    </button>
+  </div>
+</app-modal>
+
+
+<!-- =========================================
+     VIEW TASK MODAL
+========================================= -->
+
+<app-modal
+  [open]="viewModalOpen()"
+  title="Task Details"
+  subtitle="View task information."
+  size="lg"
+  (closed)="closeViewModal()">
+
+  
+<div modal-body>
+
+  @if (viewLoading()) {
+    <div class="task-modal-state">
+      <i class="fa-solid fa-spinner fa-spin"></i>
+      Loading task details...
+    </div>
+  } @else if (viewError() && !viewTask()) {
+    <div class="task-modal-error">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      {{ viewError() }}
+    </div>
+  } @else if (viewTask()) {
+
+    <div class="task-view-heading">
+      <div class="task-view-icon">
+        <i class="fa-solid fa-list-check"></i>
+      </div>
+      <div>
+        <span class="eyebrow">TASK INFORMATION</span>
+        <h3>{{ viewTask()!.title }}</h3>
+      </div>
+    </div>
+
+    <div class="task-view-section">
+      <label>Description</label>
+      <p>{{ viewTask()!.description || 'No description provided.' }}</p>
+    </div>
+
+    <div class="task-view-grid">
+      <div class="task-view-item">
+        <label>Status</label>
+        <span
+          class="status-badge"
+          [ngClass]="getStatusClass(viewTask()!.status)">
+          {{ formatStatus(viewTask()!.status) }}
+        </span>
+      </div>
+
+      <div class="task-view-item">
+        <label>Priority</label>
+        <span
+          class="priority-badge"
+          [ngClass]="getPriorityClass(viewTask()!.priority)">
+          {{ viewTask()!.priority }}
+        </span>
+      </div>
+
+      <div class="task-view-item">
+        <label>Due Date</label>
+        <strong>{{ viewTask()!.dueDate | date:'MMM d, yyyy' }}</strong>
+      </div>
+
+      <div class="task-view-item">
+        <label>Assigned To</label>
+        <strong>{{ viewTask()!.assignedToUserName || 'Unassigned' }}</strong>
+      </div>
+
+      <div class="task-view-item">
+        <label>Project ID</label>
+        <strong class="task-reference">{{ viewTask()!.projectId }}</strong>
+      </div>
+
+      <div class="task-view-item">
+        <label>Task ID</label>
+        <strong class="task-reference">{{ viewTask()!.id }}</strong>
+      </div>
+    </div>
+  }
+</div>
+
+<div modal-footer class="modal-footer-actions">
   <button
     type="button"
     class="btn-modal-cancel"
-    [disabled]="creatingTask() || improvingDescription()"
-    (click)="closeCreateModal()">
-    Cancel
+    (click)="closeViewModal()">
+    Close
   </button>
 
-  <button
-    type="submit"
-    form="createTaskForm"
-    class="btn-modal-primary"
-    [disabled]="creatingTask() || improvingDescription()">
-
-    @if (creatingTask()) {
-      <i class="fa-solid fa-spinner fa-spin"></i>
-      Creating...
-    } @else {
-      <i class="fa-solid fa-plus"></i>
-      Create Task
-    }
-
-  </button>
-
+  @if (viewTask() && (canEditTasks || viewTask()!.assignedToUserId)) {
+    <button
+      type="button"
+      class="btn-modal-primary"
+      (click)="openEditModal(viewTask()!); closeViewModal()">
+      <i class="fa-solid fa-pen"></i>
+      Edit Task
+    </button>
+  }
 </div>
-
 </app-modal>
+
+
+<!-- =========================================
+     EDIT TASK MODAL
+========================================= -->
+
+<app-modal
+  [open]="editModalOpen()"
+  title="Edit Task"
+  subtitle="Update task information and requirements."
+  size="lg"
+  [closeOnBackdrop]="!editingTask()"
+  [closeOnEscape]="!editingTask()"
+  (closed)="closeEditModal()">
+
+  <div modal-body>
+
+    @if (editLoading()) {
+      <div class="task-modal-state">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        Loading task information...
+      </div>
+    } @else {
+
+      <form
+        id="editTaskForm"
+        [formGroup]="editTaskForm"
+        class="task-modal-form"
+        (ngSubmit)="saveEditedTask()"
+        novalidate>
+
+        @if (editError()) {
+          <div class="task-modal-error">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            {{ editError() }}
+          </div>
+        }
+
+        <div class="form-group">
+          <label for="editTaskTitle">Task Title <span class="required">*</span></label>
+          <input
+            id="editTaskTitle"
+            type="text"
+            formControlName="title"
+            placeholder="Enter task title" />
+
+          @if (editTaskForm.controls.title.touched && editTaskForm.controls.title.invalid) {
+            <small class="field-error">Title must contain 3–150 characters.</small>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="editTaskDescription">Description <span class="required">*</span></label>
+          <textarea
+            id="editTaskDescription"
+            rows="5"
+            formControlName="description"
+            placeholder="Describe the task...">
+          </textarea>
+
+          @if (editTaskForm.controls.description.touched && editTaskForm.controls.description.invalid) {
+            <small class="field-error">Description must contain 10–3000 characters.</small>
+          }
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editTaskPriority">Priority <span class="required">*</span></label>
+            <select id="editTaskPriority" formControlName="priority">
+              @for (priority of priorities; track priority.value) {
+                <option [ngValue]="priority.value">{{ priority.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="editTaskDueDate">Due Date <span class="required">*</span></label>
+            <input id="editTaskDueDate" type="date" formControlName="dueDate" />
+
+            @if (editTaskForm.controls.dueDate.touched && editTaskForm.controls.dueDate.invalid) {
+              <small class="field-error">Due date is required.</small>
+            }
+          </div>
+        </div>
+      </form>
+    }
+  </div>
+
+  <div modal-footer class="modal-footer-actions">
+    <button
+      type="button"
+      class="btn-modal-cancel"
+      [disabled]="editingTask()"
+      (click)="closeEditModal()">
+      Cancel
+    </button>
+
+    <button
+      type="submit"
+      form="editTaskForm"
+      class="btn-modal-primary"
+      [disabled]="editingTask() || editLoading()">
+
+      @if (editingTask()) {
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        Saving...
+      } @else {
+        <i class="fa-solid fa-floppy-disk"></i>
+        Save Changes
+      }
+    </button>
+  </div>
+</app-modal>
+
+
+<!-- =========================================
+     DELETE CONFIRMATION
+========================================= -->
+
+<app-confirm-dialog
+  [open]="deleteDialogOpen()"
+  title="Delete Task?"
+  [message]="deleteDialogMessage()"
+  confirmText="Delete Task"
+  cancelText="Keep Task"
+  confirmVariant="danger"
+  [loading]="deletingTask()"
+  (confirmed)="confirmDeleteTask()"
+  (cancelled)="cancelDeleteTask()">
+</app-confirm-dialog>
 
 
 <!-- =========================================
@@ -584,11 +694,8 @@
 
   <div class="assign-modal-backdrop" (click)="closeAssignModal()">
 
-    <div
-      class="assign-modal"
-      (click)="$event.stopPropagation()">
+    <div class="assign-modal" (click)="$event.stopPropagation()">
 
-      <!-- HEADER -->
       <div class="assign-modal-header">
         <div>
           <span class="eyebrow">TASK MANAGEMENT</span>
@@ -605,7 +712,6 @@
       </div>
 
       @if (selectedTask(); as task) {
-
         <div class="assign-modal-body">
 
           <div class="selected-task-info">
@@ -617,14 +723,11 @@
             <label for="teamMember">Select Team Member</label>
 
             @if (membersLoading()) {
-
               <div class="modal-loading">
                 <i class="fa-solid fa-spinner fa-spin"></i>
                 Loading project members...
               </div>
-
             } @else if (teamMembers().length > 0) {
-
               <select
                 id="teamMember"
                 [(ngModel)]="selectedUserId"
@@ -637,18 +740,13 @@
                     {{ member.fullName }} ({{ member.email }})
                   </option>
                 }
-
               </select>
-
             } @else {
-
               <div class="no-members-message">
                 <i class="fa-solid fa-circle-info"></i>
                 No team members are available in this project.
               </div>
-
             }
-
           </div>
 
           @if (assignError()) {
@@ -657,12 +755,9 @@
               {{ assignError() }}
             </div>
           }
-
         </div>
 
-        <!-- ASSIGN FOOTER -->
         <div class="assign-modal-footer">
-
           <button
             type="button"
             class="btn-modal-cancel"
@@ -674,12 +769,7 @@
           <button
             type="button"
             class="btn-modal-assign"
-            [disabled]="
-              assigning() ||
-              membersLoading() ||
-              !selectedUserId ||
-              teamMembers().length === 0
-            "
+            [disabled]="assigning() || membersLoading() || !selectedUserId || teamMembers().length === 0"
             (click)="assignTask()">
 
             @if (assigning()) {
@@ -689,14 +779,9 @@
               <i class="fa-solid fa-user-check"></i>
               Assign Task
             }
-
           </button>
-
         </div>
-
       }
-
     </div>
   </div>
-
 }

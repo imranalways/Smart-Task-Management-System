@@ -1,7 +1,6 @@
 
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import {
   FormsModule,
   ReactiveFormsModule,
@@ -21,14 +20,17 @@ import { AuthService } from '../../../core/services/auth.service';
 import {
   Task,
   CreateTaskRequest,
+  UpdateTaskRequest,
   ImproveDescriptionResponse,
-  TASK_PRIORITIES
+  TASK_PRIORITIES,
+  TASK_STATUSES
 } from '../../../core/models/task/task.model';
 
 import { Project } from '../../../core/models/project/project.model';
 import { TeamMember } from '../../../core/models/team-member/team-member.model';
 
 import { AppModalComponent } from '../../../shared/components/app-modal/app-modal.component';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 type AssignmentFilter = 'all' | 'mine' | 'unassigned';
 
@@ -37,11 +39,11 @@ type AssignmentFilter = 'all' | 'mine' | 'unassigned';
   standalone: true,
   imports: [
     CommonModule,
-    RouterLink,
     FormsModule,
     ReactiveFormsModule,
     DatePipe,
-    AppModalComponent
+    AppModalComponent,
+    ConfirmDialogComponent
   ],
   templateUrl: './task-list.component.html',
   styleUrl: './task-list.component.scss'
@@ -52,13 +54,15 @@ export class TaskListComponent implements OnInit {
   private readonly projectService = inject(ProjectService);
   private readonly projectMemberService = inject(ProjectMemberService);
   private readonly authService = inject(AuthService);
-
   private readonly fb = inject(FormBuilder);
   private readonly http = inject(HttpClient);
 
   private readonly apiUrl = environment.apiUrl;
 
-  // Task and project data
+  // ==========================================
+  // TASK AND PROJECT DATA
+  // ==========================================
+
   readonly tasks = signal<Task[]>([]);
   readonly projects = signal<Project[]>([]);
 
@@ -71,74 +75,19 @@ export class TaskListComponent implements OnInit {
   readonly totalRecords = signal(0);
   readonly totalPages = signal(0);
 
-  // Assignment modal state
-  readonly assignModalOpen = signal(false);
-  readonly selectedTask = signal<Task | null>(null);
-  readonly teamMembers = signal<TeamMember[]>([]);
-  readonly membersLoading = signal(false);
-  readonly assigning = signal(false);
-  readonly assignError = signal('');
-
-  selectedUserId = '';
-
-  // Create Task modal state
-  readonly createModalOpen = signal(false);
-  readonly creatingTask = signal(false);
-  readonly improvingDescription = signal(false);
-
-  readonly createError = signal('');
-  readonly createSuccess = signal('');
+  // ==========================================
+  // COMMON CONSTANTS
+  // ==========================================
 
   readonly priorities = TASK_PRIORITIES;
+  readonly statuses = TASK_STATUSES;
 
-  // Create Task form
-  readonly createTaskForm = this.fb.nonNullable.group({
-    projectId: ['', Validators.required],
+  // ==========================================
+  // PERMISSIONS
+  // ==========================================
 
-    title: [
-      '',
-      [
-        Validators.required,
-        Validators.minLength(3),
-        Validators.maxLength(150)
-      ]
-    ],
-
-    description: [
-      '',
-      [
-        Validators.required,
-        Validators.minLength(10),
-        Validators.maxLength(3000)
-      ]
-    ],
-
-    priority: [2, Validators.required],
-    dueDate: ['', Validators.required]
-  });
-
-  // Pagination
-  pageNumber = 1;
-  pageSize = 10;
-
-  // Search
-  searchTerm = '';
-  appliedSearch = '';
-
-  // Sorting
-  sortBy = 'dueDate';
-  descending = false;
-
-  // Dropdown filters
-  selectedProjectId = '';
-
-  assignmentFilter: AssignmentFilter =
-    this.authService.getRole() === 'Admin' ? 'all' : 'mine';
-
-  // Permissions
   get canAssignTasks(): boolean {
     const role = this.authService.getRole();
-
     return role === 'Admin' || role === 'ProjectManager';
   }
 
@@ -153,6 +102,133 @@ export class TaskListComponent implements OnInit {
   get canEditTasks(): boolean {
     return this.canAssignTasks;
   }
+
+  // ==========================================
+  // CREATE TASK MODAL
+  // ==========================================
+
+  readonly createModalOpen = signal(false);
+  readonly creatingTask = signal(false);
+  readonly improvingDescription = signal(false);
+
+  readonly createError = signal('');
+  readonly createSuccess = signal('');
+
+  readonly createTaskForm = this.fb.nonNullable.group({
+    projectId: ['', Validators.required],
+    title: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(150)
+      ]
+    ],
+    description: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(10),
+        Validators.maxLength(3000)
+      ]
+    ],
+    priority: [2, Validators.required],
+    dueDate: ['', Validators.required]
+  });
+
+  // ==========================================
+  // VIEW TASK MODAL
+  // ==========================================
+
+  readonly viewModalOpen = signal(false);
+  readonly viewTask = signal<Task | null>(null);
+  readonly viewLoading = signal(false);
+  readonly viewError = signal('');
+  readonly viewSuccess = signal('');
+
+  // ==========================================
+  // EDIT TASK MODAL
+  // ==========================================
+
+  readonly editModalOpen = signal(false);
+  readonly editLoading = signal(false);
+  readonly editingTask = signal(false);
+  readonly editError = signal('');
+
+  private taskToEditId = '';
+
+  readonly editTaskForm = this.fb.nonNullable.group({
+    title: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(150)
+      ]
+    ],
+    description: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(10),
+        Validators.maxLength(3000)
+      ]
+    ],
+    priority: [2, Validators.required],
+    dueDate: ['', Validators.required]
+  });
+
+  // ==========================================
+  // DELETE TASK CONFIRMATION
+  // ==========================================
+
+  readonly deleteDialogOpen = signal(false);
+  readonly deletingTask = signal(false);
+  readonly taskToDelete = signal<Task | null>(null);
+  readonly deleteDialogMessage = signal('');
+
+  // ==========================================
+  // ASSIGN TASK MODAL
+  // ==========================================
+
+  readonly assignModalOpen = signal(false);
+  readonly selectedTask = signal<Task | null>(null);
+  readonly teamMembers = signal<TeamMember[]>([]);
+  readonly membersLoading = signal(false);
+  readonly assigning = signal(false);
+  readonly assignError = signal('');
+
+  selectedUserId = '';
+
+  // ==========================================
+  // PAGINATION
+  // ==========================================
+
+  pageNumber = 1;
+  pageSize = 10;
+
+  // ==========================================
+  // SEARCH
+  // ==========================================
+
+  searchTerm = '';
+  appliedSearch = '';
+
+  // ==========================================
+  // SORTING
+  // ==========================================
+
+  sortBy = 'dueDate';
+  descending = false;
+
+  // ==========================================
+  // FILTERS
+  // ==========================================
+
+  selectedProjectId = '';
+
+  assignmentFilter: AssignmentFilter =
+    this.authService.getRole() === 'Admin' ? 'all' : 'mine';
 
   ngOnInit(): void {
     this.loadProjects();
@@ -173,7 +249,6 @@ export class TaskListComponent implements OnInit {
       sortBy: 'name',
       descending: false
     }).subscribe({
-
       next: firstPage => {
         const firstPageItems = firstPage.items ?? [];
 
@@ -198,41 +273,30 @@ export class TaskListComponent implements OnInit {
             })
           )
         ).subscribe({
-
           next: responses => {
-            const allProjects = [
+            this.projects.set([
               ...firstPageItems,
-              ...responses.flatMap(
-                response => response.items ?? []
-              )
-            ];
-
-            this.projects.set(allProjects);
+              ...responses.flatMap(response => response.items ?? [])
+            ]);
             this.projectsLoading.set(false);
           },
-
           error: () => {
             this.projects.set(firstPageItems);
             this.projectsLoading.set(false);
-
             this.projectErrorMessage.set(
               'Some projects could not be loaded.'
             );
           }
-
         });
       },
-
       error: error => {
         this.projectsLoading.set(false);
-
         this.projectErrorMessage.set(
           error?.error?.message ||
           error?.message ||
           'Unable to load projects.'
         );
       }
-
     });
   }
 
@@ -260,24 +324,20 @@ export class TaskListComponent implements OnInit {
         : this.taskService.getTasks(query);
 
     request.subscribe({
-
       next: response => {
         this.tasks.set(response.items ?? []);
         this.totalRecords.set(response.totalRecords ?? 0);
         this.totalPages.set(response.totalPages ?? 0);
         this.loading.set(false);
       },
-
       error: error => {
         this.loading.set(false);
-
         this.errorMessage.set(
           error?.error?.message ||
           error?.message ||
           'Unable to load tasks. Please try again.'
         );
       }
-
     });
   }
 
@@ -300,7 +360,6 @@ export class TaskListComponent implements OnInit {
 
     this.createError.set('');
     this.createSuccess.set('');
-
     this.createModalOpen.set(true);
   }
 
@@ -310,7 +369,6 @@ export class TaskListComponent implements OnInit {
     }
 
     this.createModalOpen.set(false);
-
     this.createError.set('');
     this.createSuccess.set('');
 
@@ -323,18 +381,15 @@ export class TaskListComponent implements OnInit {
     });
   }
 
-  // Improve task description using AI
   improveTaskDescription(): void {
     const description =
       this.createTaskForm.controls.description.value.trim();
 
     if (description.length < 10) {
       this.createTaskForm.controls.description.markAsTouched();
-
       this.createError.set(
         'Enter at least 10 characters before improving the description.'
       );
-
       return;
     }
 
@@ -345,36 +400,32 @@ export class TaskListComponent implements OnInit {
     this.http.post<ImproveDescriptionResponse>(
       `${this.apiUrl}/ai/improve-description`,
       { description }
-    )
-    .pipe(
+    ).pipe(
       finalize(() => this.improvingDescription.set(false))
-    )
-    .subscribe({
-
+    ).subscribe({
       next: response => {
         this.createTaskForm.controls.description.setValue(
           response.improvedDescription
         );
-
         this.createSuccess.set(
           'Description improved successfully.'
         );
       },
-
       error: error => {
         this.createError.set(
           error?.error?.message ||
           'Unable to improve the description.'
         );
       }
-
     });
   }
 
-  // Save new task
   saveTask(): void {
-    this.createTaskForm.markAllAsTouched();
+    if (this.creatingTask()) {
+      return;
+    }
 
+    this.createTaskForm.markAllAsTouched();
     this.createError.set('');
     this.createSuccess.set('');
 
@@ -396,39 +447,249 @@ export class TaskListComponent implements OnInit {
 
     this.creatingTask.set(true);
 
-    this.taskService.createTask(request)
-      .pipe(
-        finalize(() => this.creatingTask.set(false))
-      )
-      .subscribe({
+    this.taskService.createTask(request).pipe(
+      finalize(() => this.creatingTask.set(false))
+    ).subscribe({
+      next: () => {
+        this.createModalOpen.set(false);
 
-        next: () => {
-          this.createModalOpen.set(false);
+        this.createTaskForm.reset({
+          projectId: '',
+          title: '',
+          description: '',
+          priority: 2,
+          dueDate: ''
+        });
 
-          this.createTaskForm.reset({
-            projectId: '',
-            title: '',
-            description: '',
-            priority: 2,
-            dueDate: ''
-          });
+        this.createError.set('');
+        this.createSuccess.set('');
 
-          this.createError.set('');
-          this.createSuccess.set('');
+        this.pageNumber = 1;
+        this.loadTasks();
+      },
+      error: error => {
+        this.createError.set(
+          error?.error?.message ||
+          error?.message ||
+          'Unable to create task. Please try again.'
+        );
+      }
+    });
+  }
 
-          this.pageNumber = 1;
-          this.loadTasks();
-        },
+  // ==========================================
+  // VIEW TASK MODAL
+  // ==========================================
 
-        error: error => {
-          this.createError.set(
-            error?.error?.message ||
-            error?.message ||
-            'Unable to create task. Please try again.'
-          );
+  openViewModal(task: Task): void {
+    this.viewTask.set(null);
+    this.viewError.set('');
+    this.viewSuccess.set('');
+    this.viewLoading.set(true);
+    this.viewModalOpen.set(true);
+
+    this.taskService.getTaskById(task.id).pipe(
+      finalize(() => this.viewLoading.set(false))
+    ).subscribe({
+      next: latestTask => {
+        this.viewTask.set(latestTask);
+      },
+      error: error => {
+        this.viewError.set(
+          error?.error?.message ||
+          error?.message ||
+          'Unable to load task details.'
+        );
+      }
+    });
+  }
+
+  closeViewModal(): void {
+    this.viewModalOpen.set(false);
+    this.viewTask.set(null);
+    this.viewError.set('');
+    this.viewSuccess.set('');
+  }
+
+  // ==========================================
+  // EDIT TASK MODAL
+  // ==========================================
+
+  openEditModal(task: Task): void {
+    if (!this.canEditTasks && !task.assignedToUserId) {
+      return;
+    }
+
+    this.taskToEditId = task.id;
+    this.editError.set('');
+
+    this.editTaskForm.reset({
+      title: '',
+      description: '',
+      priority: 2,
+      dueDate: ''
+    });
+
+    this.editLoading.set(true);
+    this.editModalOpen.set(true);
+
+    this.taskService.getTaskById(task.id).pipe(
+      finalize(() => this.editLoading.set(false))
+    ).subscribe({
+      next: latestTask => {
+        this.editTaskForm.patchValue({
+          title: latestTask.title,
+          description: latestTask.description,
+          priority: this.getPriorityValue(latestTask.priority),
+          dueDate: this.toDateInputValue(latestTask.dueDate)
+        });
+      },
+      error: error => {
+        this.editError.set(
+          error?.error?.message ||
+          error?.message ||
+          'Unable to load task for editing.'
+        );
+      }
+    });
+  }
+
+  closeEditModal(): void {
+    if (this.editingTask()) {
+      return;
+    }
+
+    this.editModalOpen.set(false);
+    this.editError.set('');
+    this.taskToEditId = '';
+  }
+
+  saveEditedTask(): void {
+    if (this.editingTask() || this.editLoading()) {
+      return;
+    }
+
+    this.editTaskForm.markAllAsTouched();
+    this.editError.set('');
+
+    if (this.editTaskForm.invalid || !this.taskToEditId) {
+      return;
+    }
+
+    const values = this.editTaskForm.getRawValue();
+
+    const request: UpdateTaskRequest = {
+      id: this.taskToEditId,
+      title: values.title.trim(),
+      description: values.description.trim(),
+      priority: Number(values.priority),
+      dueDate: new Date(
+        `${values.dueDate}T12:00:00`
+      ).toISOString()
+    };
+
+    this.editingTask.set(true);
+
+    this.taskService.updateTask(request).pipe(
+      finalize(() => this.editingTask.set(false))
+    ).subscribe({
+      next: () => {
+        this.editModalOpen.set(false);
+        this.taskToEditId = '';
+        this.loadTasks();
+      },
+      error: error => {
+        this.editError.set(
+          error?.error?.message ||
+          error?.message ||
+          'Unable to update task. Please try again.'
+        );
+      }
+    });
+  }
+
+  private getPriorityValue(priority: string): number {
+    const values: Record<string, number> = {
+      Low: 1,
+      Medium: 2,
+      High: 3,
+      Critical: 4
+    };
+
+    return values[priority] ?? 2;
+  }
+
+  private toDateInputValue(date: string): string {
+    const parsed = new Date(date);
+
+    if (Number.isNaN(parsed.getTime())) {
+      return '';
+    }
+
+    const year = parsed.getFullYear();
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const day = String(parsed.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  // ==========================================
+  // DELETE TASK CONFIRMATION
+  // ==========================================
+
+  deleteTask(task: Task): void {
+    if (!this.canDeleteTasks && !task.assignedToUserId) {
+      return;
+    }
+
+    this.taskToDelete.set(task);
+    this.deleteDialogMessage.set(
+      `Are you sure you want to permanently delete "${task.title}"? This action cannot be undone.`
+    );
+    this.deleteDialogOpen.set(true);
+  }
+
+  cancelDeleteTask(): void {
+    if (this.deletingTask()) {
+      return;
+    }
+
+    this.deleteDialogOpen.set(false);
+    this.taskToDelete.set(null);
+    this.deleteDialogMessage.set('');
+  }
+
+  confirmDeleteTask(): void {
+    const task = this.taskToDelete();
+
+    if (!task || this.deletingTask()) {
+      return;
+    }
+
+    this.deletingTask.set(true);
+
+    this.taskService.deleteTask(task.id).pipe(
+      finalize(() => this.deletingTask.set(false))
+    ).subscribe({
+      next: () => {
+        this.deleteDialogOpen.set(false);
+        this.taskToDelete.set(null);
+        this.deleteDialogMessage.set('');
+
+        if (this.tasks().length === 1 && this.pageNumber > 1) {
+          this.pageNumber--;
         }
 
-      });
+        this.loadTasks();
+      },
+      error: error => {
+        this.deleteDialogMessage.set(
+          error?.error?.message ||
+          error?.message ||
+          'Unable to delete this task. Please try again.'
+        );
+      }
+    });
   }
 
   // ==========================================
@@ -508,7 +769,6 @@ export class TaskListComponent implements OnInit {
 
     this.selectedTask.set(task);
     this.selectedUserId = '';
-
     this.teamMembers.set([]);
     this.assignError.set('');
 
@@ -516,31 +776,25 @@ export class TaskListComponent implements OnInit {
     this.membersLoading.set(true);
 
     this.projectMemberService.getMembers(task.projectId).subscribe({
-
       next: members => {
         const eligibleMembers = (members ?? []).filter(
-          member =>
-            member.role?.toLowerCase() === 'teammember'
+          member => member.role?.toLowerCase() === 'teammember'
         );
 
         this.teamMembers.set(eligibleMembers);
         this.membersLoading.set(false);
       },
-
       error: error => {
         this.membersLoading.set(false);
-
         this.assignError.set(
           error?.error?.message ||
           error?.message ||
           'Unable to load project team members.'
         );
       }
-
     });
   }
 
-  // Assign task to selected team member
   assignTask(): void {
     const task = this.selectedTask();
 
@@ -553,24 +807,20 @@ export class TaskListComponent implements OnInit {
 
     this.taskService.assignTask(task.id, {
       userId: this.selectedUserId
-    }).subscribe({
-
+    }).pipe(
+      finalize(() => this.assigning.set(false))
+    ).subscribe({
       next: () => {
-        this.assigning.set(false);
         this.closeAssignModal();
         this.loadTasks();
       },
-
       error: error => {
-        this.assigning.set(false);
-
         this.assignError.set(
           error?.error?.message ||
           error?.message ||
           'Failed to assign the task. Please try again.'
         );
       }
-
     });
   }
 
@@ -604,7 +854,6 @@ export class TaskListComponent implements OnInit {
     }
 
     this.taskService.unassignTask(task.id).subscribe({
-
       next: () => {
         if (this.tasks().length === 1 && this.pageNumber > 1) {
           this.pageNumber--;
@@ -612,7 +861,6 @@ export class TaskListComponent implements OnInit {
 
         this.loadTasks();
       },
-
       error: error => {
         this.errorMessage.set(
           error?.error?.message ||
@@ -620,40 +868,6 @@ export class TaskListComponent implements OnInit {
           'Failed to unassign task.'
         );
       }
-
-    });
-  }
-
-  // ==========================================
-  // DELETE TASK
-  // ==========================================
-
-  deleteTask(task: Task): void {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${task.title}"?`
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    this.taskService.deleteTask(task.id).subscribe({
-
-      next: () => {
-        if (this.tasks().length === 1 && this.pageNumber > 1) {
-          this.pageNumber--;
-        }
-
-        this.loadTasks();
-      },
-
-      error: error => {
-        this.errorMessage.set(
-          error?.error?.message ||
-          'Failed to delete task.'
-        );
-      }
-
     });
   }
 
@@ -665,39 +879,27 @@ export class TaskListComponent implements OnInit {
     switch (status?.toLowerCase()) {
       case 'todo':
         return 'status-todo';
-
       case 'inprogress':
         return 'status-progress';
-
       case 'completed':
         return 'status-completed';
-
       case 'cancelled':
         return 'status-cancelled';
-
       default:
         return 'status-default';
     }
   }
 
-  // ==========================================
-  // PRIORITY STYLING
-  // ==========================================
-
   getPriorityClass(priority: string): string {
     switch (priority?.toLowerCase()) {
       case 'low':
         return 'priority-low';
-
       case 'medium':
         return 'priority-medium';
-
       case 'high':
         return 'priority-high';
-
       case 'critical':
         return 'priority-critical';
-
       default:
         return 'priority-default';
     }
